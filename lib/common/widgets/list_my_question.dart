@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quiz_app/common/bloc/button/button_state.dart';
 import 'package:quiz_app/common/bloc/button/button_state_cubit.dart';
 import 'package:quiz_app/common/widgets/question_card.dart';
+import 'package:quiz_app/data/question/models/search_sort_model.dart';
 import 'package:quiz_app/data/quiz/models/quiz_quetion_payload.dart';
 import 'package:quiz_app/domain/question/entity/basic_question_entity.dart';
 import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
@@ -33,7 +34,7 @@ class _ListMyQuestionState extends State<ListMyQuestion> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-            create: (BuildContext context) => GetMyQuestionCubit()..onGet()),
+            create: (BuildContext context) => GetMyQuestionCubit()..onGet(SearchAndSortModel(name: '', sortField: '', direction: ''))),
         BlocProvider(create: (BuildContext context) => SelectQuestionCubit()),
         BlocProvider(create: (BuildContext context) => ButtonStateCubit()),
       ],

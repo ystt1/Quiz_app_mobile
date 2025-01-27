@@ -115,7 +115,11 @@ class _TeamPageState extends State<TeamPage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(12.0),
-            child: SearchSort(),
+            child: SearchSort(
+              onSearch: (state) {
+                print('Search and Sort State: ${state.name}, ${state.sortField}, ${state.direction}');
+              },
+            ),
           ),
           Expanded(
             child: ListView.separated(

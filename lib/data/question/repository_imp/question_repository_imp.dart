@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:quiz_app/data/question/models/basic_question_model.dart';
 import 'package:quiz_app/data/question/models/edit_question_payload_model.dart';
 import 'package:quiz_app/data/question/models/question_payload_model.dart';
+import 'package:quiz_app/data/question/models/search_sort_model.dart';
 import 'package:quiz_app/data/question/service/question_service.dart';
 import 'package:quiz_app/domain/question/repository/question_repository.dart';
 
@@ -44,9 +45,9 @@ class QuestionRepositoryImp extends QuestionRepository {
   }
 
   @override
-  Future<Either> getMyQuestion() async {
+  Future<Either> getMyQuestion(SearchAndSortModel searchSort) async {
     try {
-      final response = await sl<QuestionService>().getListMyQuestionService();
+      final response = await sl<QuestionService>().getListMyQuestionService(searchSort);
       return response.fold((error) => Left(error), (data) {
         var returnData = (data as List<BasicQuestionModel>)
             .map((e) => e.toEntity())

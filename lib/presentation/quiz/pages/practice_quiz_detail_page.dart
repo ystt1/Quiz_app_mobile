@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
+
 
 class PracticeQuizDetailPage extends StatelessWidget {
+  final BasicQuizEntity quiz;
+  const PracticeQuizDetailPage({super.key, required this.quiz});
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3, // Thêm tab mới cho Leaderboard
+      length: 3,
       child: Scaffold(
         body: Stack(
           children: [
-            // Background Image with Blur Effect for the top section
             Positioned.fill(
               child: Column(
                 children: [
@@ -16,8 +20,8 @@ class PracticeQuizDetailPage extends StatelessWidget {
                     height: MediaQuery.of(context).size.height * 0.3,
                     child: Stack(
                       children: [
-                        Image.asset(
-                          'assets/img/quiz_img.jpg',
+                        Image.network(
+                          quiz.image,
                           fit: BoxFit.cover,
                           width: double.infinity,
                         ),
@@ -35,19 +39,17 @@ class PracticeQuizDetailPage extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Main Content
             SingleChildScrollView(
               child: Column(
                 children: [
-                  // AppBar Section
+
                   SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Row(
                         children: [
                           IconButton(
-                            icon: Icon(Icons.arrow_back, color: Colors.white),
+                            icon: const Icon(Icons.arrow_back, color: Colors.white),
                             onPressed: () {
                               Navigator.pop(context);
                             },
@@ -63,37 +65,34 @@ class PracticeQuizDetailPage extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8.0),
-                          child: Image.asset(
-                            'assets/img/quiz_img.jpg',
+                          child: Image.network(
+                            quiz.image,
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
                           ),
                         ),
-                        SizedBox(width: 16.0),
+                        const SizedBox(width: 16.0),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Quiz Name',
-                                style: TextStyle(
+                                quiz.name,
+                                style: const TextStyle(
                                   fontSize: 20.0,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
                               ),
+
                               Text(
-                                'Owner: John Doe',
-                                style: TextStyle(color: Colors.white),
+                                'Questions: ${quiz.questionNumber}',
+                                style: const TextStyle(color: Colors.white),
                               ),
                               Text(
-                                'Questions: 20',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              Text(
-                                'Duration: 15 min',
-                                style: TextStyle(color: Colors.white),
+                                'Duration: ${quiz.time} min',
+                                style: const TextStyle(color: Colors.white),
                               ),
                             ],
                           ),
@@ -101,7 +100,7 @@ class PracticeQuizDetailPage extends StatelessWidget {
                       ],
                     ),
                   ),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: () {
                       // Navigate to the quiz page
@@ -116,20 +115,20 @@ class PracticeQuizDetailPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Start Quiz',
                       style: TextStyle(fontSize: 16.0),
                     ),
                   ),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                   // TabBar Section
                   Container(
                     color: Colors.white,
-                    child: TabBar(
+                    child: const TabBar(
                       indicatorColor: Colors.blue,
                       labelColor: Colors.blue,
                       unselectedLabelColor: Colors.grey,
-                      tabs: const [
+                      tabs: [
                         Tab(text: 'Introduction'),
                         Tab(text: 'Leaderboard'),
                         Tab(text: 'Comments'),
@@ -147,41 +146,40 @@ class PracticeQuizDetailPage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Participants: 150',
                                 style: TextStyle(fontSize: 16.0),
                               ),
-                              Text(
+                              const Text(
                                 'Favorites: 50',
                                 style: TextStyle(fontSize: 16.0),
                               ),
-                              SizedBox(height: 8.0),
-                              Text(
+                              const SizedBox(height: 8.0),
+                              const Text(
                                 'Description:',
                                 style: TextStyle(
                                   fontSize: 18.0,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Text(
-                                'This is the description of the quiz.',
+                               Text(
+                              quiz.description
                               ),
-                              SizedBox(height: 8.0),
-                              Text(
+                              const SizedBox(height: 8.0),
+                              const Text(
                                 'Topics:',
                                 style: TextStyle(
                                   fontSize: 18.0,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Wrap(
-                                children: const [
-                                  Chip(label: Text('Topic 1')),
-                                  Chip(label: Text('Topic 2')),
+                               Wrap(
+                                children: [
+                                  ...quiz.topicId.map((e) => Chip(label: Text(e.name))).toList(),
                                 ],
                               ),
-                              SizedBox(height: 8.0),
-                              Text(
+                              const SizedBox(height: 8.0),
+                              const Text(
                                 'Other Quizzes by Owner:',
                                 style: TextStyle(
                                   fontSize: 18.0,
@@ -214,7 +212,7 @@ class PracticeQuizDetailPage extends StatelessWidget {
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
                             children: [
-                              Text(
+                              const Text(
                                 'Top 5 Participants',
                                 style: TextStyle(
                                   fontSize: 18.0,
@@ -244,7 +242,7 @@ class PracticeQuizDetailPage extends StatelessWidget {
                             onPressed: () {
                               // Navigate to comments page
                             },
-                            child: Text('Go to Comments'),
+                            child: const Text('Go to Comments'),
                           ),
                         ),
                       ],
@@ -259,3 +257,4 @@ class PracticeQuizDetailPage extends StatelessWidget {
     );
   }
 }
+

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
+import 'package:quiz_app/data/question/models/search_sort_model.dart';
 import 'package:quiz_app/data/quiz/models/quiz_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:quiz_app/data/quiz/models/quiz_payload_model.dart';
@@ -19,7 +20,7 @@ abstract class QuizService {
 
   Future<Either> getHotQuizService();
 
-  Future<Either> getListMyQuizService();
+  Future<Either> getListMyQuizService(SearchAndSortModel searchSort);
 
   Future<Either> getListQuizOfTeamService();
 
@@ -57,11 +58,11 @@ class QuizServiceImp extends QuizService {
   }
 
   @override
-  Future<Either> getListMyQuizService() async {
+  Future<Either> getListMyQuizService(SearchAndSortModel searchSort) async {
     try {
 
       final apiService = sl<ApiService>();
-      final response = await apiService.get('http://localhost:5000/api/quiz/get-my-quiz',);
+      final response = await apiService.get('http://localhost:5000/api/quiz/get-my-quiz?name=${searchSort.name}&sortField=${searchSort.sortField}&sortOrder=${searchSort.direction}',);
 
       if(response.statusCode==200)
       {
@@ -84,7 +85,7 @@ class QuizServiceImp extends QuizService {
   @override
   Future<Either> getNewestQuizService() async {
     try {
-      final uri = Uri.parse('http://localhost:5000/api/quiz');
+      final uri = Uri.parse('http://localhost:5000/api/quiz?status=active&sortField=createdAt');
       final response = await http.get(uri);
       if(response.statusCode==200)
       {
@@ -113,7 +114,7 @@ class QuizServiceImp extends QuizService {
       };
       return Left((jsonDecode(response.body)["message"]["message"])??"Some thing went wrong");
     } catch (e) {
-      print(e.toString());
+
       return Left(e.toString());
     }
   }

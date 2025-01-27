@@ -7,10 +7,12 @@ import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
 import 'package:quiz_app/common/widgets/list_my_question.dart';
 import 'package:quiz_app/common/widgets/question_card.dart';
+import 'package:quiz_app/data/quiz/models/edit_quiz_model.dart';
 import 'package:quiz_app/data/quiz/models/quiz_quetion_payload.dart';
 import 'package:quiz_app/domain/question/entity/basic_question_entity.dart';
 import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
 import 'package:quiz_app/domain/quiz/entity/topic_entity.dart';
+import 'package:quiz_app/domain/quiz/usecase/edit_quiz_detail_usecase.dart';
 import 'package:quiz_app/domain/quiz/usecase/remove_question_from_quiz_usecase.dart';
 import 'package:quiz_app/presentation/library/bloc/get_quiz_detail_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/get_quiz_detail_state.dart';
@@ -29,16 +31,29 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
   late bool isPrivate;
   List<int> selectedIndexes = [];
   bool isSelectionMode = false;
-  @override
-  void initState() {
-    super.initState();
-    isPrivate = widget.quiz.status == "active" ? true : false;
-  }
 
   void onRefresh(BuildContext context)
   {
     context.read<GetQuizDetailCubit>().onGet(widget.quiz.id);
     widget.onRefresh?.call();
+  }
+
+  void onChangePrivacy(BuildContext context,bool isActive,BasicQuizEntity quiz)
+  {
+    context.read<ButtonStateCubit>().execute(
+      usecase: EditQuizDetailUseCase(),
+      params: EditQuizModel(
+        id: quiz.id,
+        name: quiz.name,
+        description: quiz.description,
+        topicId:quiz.topicId.map((e)=>e.toModel()).toList(),
+        questions: quiz.questions.map((e)=>e.toModel()).toList(),
+        image: quiz.image,
+        idCreator: quiz.idCreator,
+        status: isActive?"active":"inactive",
+        time: quiz.time,
+      ),
+    );
   }
 
   @override
@@ -59,6 +74,7 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
             return GetFailure(name: state.error);
           }
           if (state is GetQuizDetailSuccess) {
+            isPrivate = state.quiz.status == "active" ? true : false;
             return BlocListener<ButtonStateCubit,ButtonState>(
               listener: (BuildContext context, state) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -78,7 +94,6 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
                     isSelectionMode=false;
                   });
                   onRefresh(context);
-
                 }
               },
               child: Scaffold(
@@ -145,7 +160,7 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
                         ),
                         _topics(state.quiz.topicId),
                         const SizedBox(height: 16),
-                        _privacy(),
+                        _privacy(isPrivate,context,state.quiz),
                         const SizedBox(height: 16),
                         Text(
                           "Questions",
@@ -286,7 +301,7 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
     );
   }
 
-  Widget _privacy()
+  Widget _privacy(bool isPrivate,BuildContext context,BasicQuizEntity quiz)
   {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -303,9 +318,7 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
               Switch(
                 value: isPrivate,
                 onChanged: (value) {
-                  setState(() {
-                    isPrivate = value;
-                  });
+                  onChangePrivacy(context,value,quiz);
                 },
               ),
             ],

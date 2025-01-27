@@ -7,13 +7,14 @@ import 'package:quiz_app/data/question/models/basic_question_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:quiz_app/data/question/models/edit_question_payload_model.dart';
 import 'package:quiz_app/data/question/models/question_payload_model.dart';
+import 'package:quiz_app/data/question/models/search_sort_model.dart';
 import 'package:quiz_app/service_locator.dart';
 abstract class QuestionService{
   Future<Either> addQuestionService(QuestionPayload question);
   Future<Either> deleteQuestionService();
   Future<Either> editQuestionService(EditQuestionPayloadModel question);
   Future<Either> getListQuestionService();
-  Future<Either> getListMyQuestionService();
+  Future<Either> getListMyQuestionService(SearchAndSortModel searchSort);
   Future<Either> getQuestionDetailService();
 }
 
@@ -135,10 +136,11 @@ class QuestionServiceImp extends QuestionService {
   }
 
   @override
-  Future<Either> getListMyQuestionService() async {
+  Future<Either> getListMyQuestionService(SearchAndSortModel searchSort) async {
     try {
+      print(searchSort);
       final apiService = sl<ApiService>();
-      final response = await apiService.get('http://localhost:5000/api/question/get-my-question');
+      final response = await apiService.get('http://localhost:5000/api/question/get-my-question?name=${searchSort.name}&sortField=${searchSort.sortField}&sortOrder=${searchSort.direction}');
       if(response.statusCode==200)
       {
         final List<dynamic> data = jsonDecode(response.body)["data"];
@@ -147,6 +149,7 @@ class QuestionServiceImp extends QuestionService {
       };
       return Left((jsonDecode(response.body)["message"]["message"])??"Some thing went wrong");
     } catch (e) {
+
       return Left(e.toString());
     }
   }

@@ -11,7 +11,7 @@ class BigQuizCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: (){Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => PracticeQuizDetailPage()),
+        MaterialPageRoute(builder: (context) => PracticeQuizDetailPage(quiz: quiz,)),
       );},
       child: Row(
         children: [

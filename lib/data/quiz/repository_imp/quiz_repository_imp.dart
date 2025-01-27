@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:quiz_app/data/question/models/search_sort_model.dart';
 import 'package:quiz_app/data/quiz/models/quiz_model.dart';
 import 'package:quiz_app/data/quiz/models/quiz_payload_model.dart';
 import 'package:quiz_app/data/quiz/models/quiz_quetion_payload.dart';
@@ -41,9 +42,9 @@ class QuizRepositoryImp extends QuizRepository {
   }
 
   @override
-  Future<Either> getListMyQuiz() async {
+  Future<Either> getListMyQuiz(SearchAndSortModel searchSort) async {
     try {
-      final response = await sl<QuizService>().getListMyQuizService();
+      final response = await sl<QuizService>().getListMyQuizService(searchSort);
       return response.fold((error) => Left(error), (data) {
         final entity = (data as List<BasicQuizModel>)
             .map((BasicQuizModel quiz) => quiz.toEntity()).toList();

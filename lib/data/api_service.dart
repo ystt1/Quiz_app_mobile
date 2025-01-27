@@ -14,6 +14,7 @@ class ApiService {
       if (token != null) 'Authorization': 'Bearer $token',
     };
     final response = await http.get(Uri.parse(endpoint), headers: headers);
+
     if (response.statusCode == 401) {
 
       final isRefreshed = await _refreshToken();
