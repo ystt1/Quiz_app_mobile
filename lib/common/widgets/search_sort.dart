@@ -61,7 +61,6 @@ class _SearchSortState extends State<SearchSort> {
         PopupMenuButton<String>(
           onSelected: (value) {
             // Handle sort selection
-            print("Sort selected: $value");
           },
           itemBuilder: (BuildContext context) => [
             const PopupMenuItem(value: 'name', child: Text('Sort by Name')),

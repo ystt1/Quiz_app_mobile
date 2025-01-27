@@ -11,6 +11,7 @@ import 'package:quiz_app/presentation/library/bloc/get_my_question_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/get_my_question_state.dart';
 import 'package:quiz_app/presentation/library/bloc/get_my_quiz_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/get_my_quiz_state.dart';
+import 'package:quiz_app/presentation/library/widget/question_detail.dart';
 import 'package:quiz_app/presentation/library/widget/quiz_list.dart';
 
 class LibraryPage extends StatefulWidget {
@@ -21,65 +22,79 @@ class LibraryPage extends StatefulWidget {
 class _LibraryPageState extends State<LibraryPage> {
   int _selectedTabIndex = 0;
 
+
+  void onRefreshQuestion(BuildContext context)
+  {
+    context.read<GetMyQuestionCubit>().onGet();
+  }
+
+  void onRefreshQuiz(BuildContext context)
+  {
+    context.read<GetMyQuizCubit>().onGet();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-              create: (BuildContext context) => GetMyQuizCubit()..onGet()),
-          BlocProvider(
-              create: (BuildContext context) => GetMyQuestionCubit()..onGet()),
-        ],
-        child: Column(
-          children: [
-            // Tab Selector with modern design
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: const BoxDecoration(
-                color: Colors.blueAccent,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+            create: (BuildContext context) => GetMyQuizCubit()..onGet()),
+        BlocProvider(
+            create: (BuildContext context) => GetMyQuestionCubit()..onGet()),
+      ],
+      child: Scaffold(
+          body: Column(
+            children: [
+              // Tab Selector with modern design
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: const BoxDecoration(
+                  color: Colors.blueAccent,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildTabButton('Quiz', 0),
+                    _buildTabButton('Question', 1),
+                  ],
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildTabButton('Quiz', 0),
-                  _buildTabButton('Question', 1),
-                ],
-              ),
-            ),
 
-            const SearchSort(),
-            // Content Area
-            Expanded(
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: _selectedTabIndex == 0
-                      ? _buildQuizList()
-                      : _buildQuestionList(),
+              const SearchSort(),
+              Expanded(
+                child: Container(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: _selectedTabIndex == 0
+                        ? _buildQuizList()
+                        : _buildQuestionList(),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+        floatingActionButton: Builder(
+          builder: (context) {
+            return FloatingActionButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  builder: (innerContext) => _selectedTabIndex==1?AddQuestionModal(onRefresh: ()=>onRefreshQuestion(context)):AddQuizModal(onRefresh: ()=>onRefreshQuiz(context)),
+                );
+              },
+              backgroundColor: Colors.blueAccent,
+              child: const Icon(Icons.add, size: 28),
+            );
+          }
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            builder: (context) => _selectedTabIndex==1?AddQuestionModal():AddQuizModal(),
-          );
-        },
-        backgroundColor: Colors.blueAccent,
-        child: const Icon(Icons.add, size: 28),
       ),
     );
   }
@@ -128,7 +143,7 @@ class _LibraryPageState extends State<LibraryPage> {
         return  GetFailure(name: state.error);
       }
       if (state is GetMyQuizSuccess) {
-        return QuizList(quizList: state.myQuiz,isYour: true,);
+        return QuizList(quizList: state.myQuiz,isYour: true,onRefresh: ()=>onRefreshQuiz(context));
       }
       return const GetSomethingWrong();
     });
@@ -137,6 +152,7 @@ class _LibraryPageState extends State<LibraryPage> {
   Widget _buildQuestionList() {
     return BlocBuilder<GetMyQuestionCubit, GetMyQuestionState>(
         builder: (BuildContext context, state) {
+
           if (state is GetMyQuestionLoading) {
             return const GetLoading();
           }
@@ -145,10 +161,23 @@ class _LibraryPageState extends State<LibraryPage> {
           }
           if (state is GetMyQuestionSuccess) {
             return ListView.builder(itemBuilder: (context,index){
-              return QuestionCard(question: state.questions[index]);
+              return GestureDetector(
+                onTap: (){
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                    builder: (innerContext) => EditQuestionModal(question: state.questions[index], onRefresh:()=> onRefreshQuestion(context)),
+                  );
+                },
+                child: QuestionCard(question: state.questions[index], index: index, onDelete: () {
+
+                }),
+              );
             },
               itemCount: state.questions.length,
-
             );
           }
           return const GetSomethingWrong();

@@ -6,12 +6,14 @@ class QuizCard extends StatelessWidget {
   final VoidCallback onClick;
   final bool isYour;
   final BasicQuizEntity quiz;
+  final bool isSelected;
+  final bool isSelectedMode;
 
   const QuizCard(
       {super.key,
       required this.onClick,
       required this.isYour,
-      required this.quiz});
+      required this.quiz, this.isSelected=false, this.isSelectedMode=false});
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +37,11 @@ class QuizCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _information(Icons.timer, '${quiz.time} min'),
-                        _information(Icons.help, '${quiz.numberQues} question'),
+                        _information(Icons.help, '${quiz.questionNumber} question'),
                       ],
                     ),
                     SizedBox(height: 3,),
-                    _information(Icons.date_range, quiz.createdDate),
+                    _information(Icons.date_range, quiz.createdAt),
                     SizedBox(height: 3,),
                     _tag(),
                     SizedBox(height: 1.5,),
@@ -61,7 +63,7 @@ class QuizCard extends StatelessWidget {
       decoration: BoxDecoration(
           image: DecorationImage(
               image: NetworkImage(
-                quiz.imgUrl,
+                quiz.image,
               ),
               fit: BoxFit.cover),
           borderRadius: BorderRadius.circular(12),
@@ -84,33 +86,14 @@ class QuizCard extends StatelessWidget {
             ),
           ),
         ),
-        Visibility(
-          visible: isYour,
-          child: PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'delete') {
-                // Thực hiện hành động xóa;
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Xóa'),
-                  ],
-                ),
-              ),
-            ],
-            icon: const Icon(
-              Icons.more_vert,
-              color: Colors.grey,
-              size: 19,
-            ),
-          ),
-        ),
+        isSelectedMode
+            ? Checkbox(
+          value: isSelected,
+          onChanged: (value) {
+
+          },
+        )
+            : Icon(Icons.delete, color: Colors.red),
       ],
     );
   }
@@ -119,7 +102,7 @@ class QuizCard extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: quiz.topics
+        children: quiz.topicId
             .map(
               (topic) => Container(
                 child: Row(
@@ -127,7 +110,7 @@ class QuizCard extends StatelessWidget {
                     const Icon(Icons.tag, size: 12, color: Colors.grey),
                     const SizedBox(width: 4),
                     Text(
-                      topic,
+                      topic.name,
                       style: const TextStyle(
                         fontSize: 10,
                         color: Colors.grey,

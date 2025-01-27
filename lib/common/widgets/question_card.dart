@@ -2,12 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:quiz_app/domain/question/entity/basic_question_entity.dart';
 
 class QuestionCard extends StatelessWidget {
+  final int index;
+  final VoidCallback onDelete;
   final BasicQuestionEntity question;
-  const QuestionCard({super.key, required this.question});
+  final bool isSelected;
+  final bool isSelectedMode;
+  const QuestionCard({
+    super.key,
+    required this.question,
+    required this.index,
+    required this.onDelete,
+    this.isSelected = false,
+    this.isSelectedMode = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: isSelected ? Colors.blue.shade100 : Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -20,34 +32,20 @@ class QuestionCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    '1',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                 Expanded(
+                Expanded(
                   child: Text(
                     question.content,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const Icon(Icons.more_vert, color: Colors.grey),
+                !isSelectedMode?
+                  IconButton(
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                  ):Checkbox(value: isSelected, onChanged: (value){})
               ],
             ),
             const SizedBox(height: 12),
@@ -56,7 +54,7 @@ class QuestionCard extends StatelessWidget {
               children: [
                 _infoItem(Icons.calendar_today, 'Created', question.dateCreated),
                 _infoItem(Icons.quiz, 'Type', question.type),
-                _infoItem(Icons.speed, 'Difficulty', 'Medium'),
+                _infoItem(Icons.score, 'Score', question.score.toString()),
               ],
             ),
           ],
@@ -82,3 +80,5 @@ class QuestionCard extends StatelessWidget {
     );
   }
 }
+
+

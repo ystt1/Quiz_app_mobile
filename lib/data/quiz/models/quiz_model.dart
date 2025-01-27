@@ -1,22 +1,88 @@
+import 'package:intl/intl.dart';
+import 'package:quiz_app/data/question/models/basic_question_model.dart';
+import 'package:quiz_app/data/quiz/models/topic_model.dart';
 import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
 
-class BasicQuizModel{
+class BasicQuizModel {
   final String id;
   final String name;
   final String description;
-  final int numberQues;
+  final List<TopicModel> topicId;
+  final List<BasicQuestionModel> questions;
+  final String image;
+  final String idCreator;
+  final String status;
   final int time;
-  final List<String> topics;
-  final String imgUrl;
-  final String createdDate="29/01/2012";
+  final String createdAt;
+  final int numberQuestion;
 
-  BasicQuizModel({required this.id, required this.name, required this.description, required this.numberQues, required this.time, required this.topics, required this.imgUrl});
+  factory BasicQuizModel.fromMap(Map<String, dynamic> map) {
+    List<dynamic>? rawQuestions = map['questions'] as List<dynamic>?;
 
+    List<BasicQuestionModel> parsedQuestions = [];
+    if (rawQuestions != null) {
+
+      if (rawQuestions.every((item) => item is String)) {
+      } else {
+        parsedQuestions =
+            rawQuestions.map((e) => BasicQuestionModel.fromMap(e)).toList();
+      }
+    }
+
+    return BasicQuizModel(
+      id: map['_id'] as String? ?? '',
+      // Default to empty string
+      name: map['name'] as String? ?? 'Untitled Quiz',
+      // Default value
+      description: map['description'] as String? ?? 'No description provided.',
+      topicId: (map['topicId'] as List<dynamic>?)
+              ?.map((topic) => TopicModel.fromMap(topic))
+              .toList() ??
+          [],
+      questions: parsedQuestions,
+      image: map['image'] as String? ?? '',
+      // Default to empty string
+      idCreator: map['idCreator'] as String? ?? 'Unknown Creator',
+      // Default value
+      status: map['status'] as String? ?? 'inactive',
+      // Default to inactive
+      time: map['time'] as int? ?? 0,
+      // Default to 0
+      createdAt:DateFormat('dd/MM/yyyy').format(DateTime.parse( map['createdAt'] as String) )??"",
+      // Default to empty string
+      numberQuestion: rawQuestions?.length ?? 0,
+    );
+  }
+
+  BasicQuizModel(
+      {required this.id,
+      required this.name,
+      required this.description,
+      required this.topicId,
+      required this.questions,
+      required this.image,
+      required this.idCreator,
+      required this.status,
+      required this.time,
+      required this.createdAt,
+      required this.numberQuestion});
 }
 
-extension BasicQuizModelToEntity on BasicQuizModel{
-  BasicQuizEntity toEntity()
-  {
-    return BasicQuizEntity(id: id, name: name, description: description, numberQues: numberQues, time: time, topics: topics, imgUrl: imgUrl, createdDate: createdDate);
+extension BasicQuizModelToEntity on BasicQuizModel {
+  BasicQuizEntity toEntity() {
+    return BasicQuizEntity(
+        id: id,
+        name: name,
+        description: description,
+        topicId: topicId.map((TopicModel topic) => topic.toEntity()).toList(),
+        questions: questions
+            .map((BasicQuestionModel question) => question.toEntity())
+            .toList(),
+        image: image,
+        idCreator: idCreator,
+        status: status,
+        time: time,
+        createdAt: createdAt,
+        questionNumber: numberQuestion);
   }
 }

@@ -7,6 +7,7 @@ import '../../../service_locator.dart';
 class GetAllTopicUseCase implements UseCase<Either,dynamic> {
   @override
   Future<Either> call({params}) async {
+    print("gettopic");
     return await sl<QuizRepository>().getAllTopic();
   }
 

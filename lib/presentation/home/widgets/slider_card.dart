@@ -17,7 +17,7 @@ class SliderCard extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
                 image: DecorationImage(
-                    image: NetworkImage(quiz.imgUrl), fit: BoxFit.cover),
+                    image: NetworkImage(quiz.image), fit: BoxFit.cover),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.black)),
           ),

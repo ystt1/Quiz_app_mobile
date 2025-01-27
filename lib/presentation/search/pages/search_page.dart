@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
+import 'package:quiz_app/domain/quiz/entity/topic_entity.dart';
+import 'package:quiz_app/presentation/library/bloc/get_all_topic_cubit.dart';
+import 'package:quiz_app/presentation/library/bloc/get_all_topic_state.dart';
 import 'package:quiz_app/presentation/library/widget/quiz_list.dart';
 import 'package:quiz_app/presentation/search/bloc/get_list_quiz_search_cubit.dart';
 import 'package:quiz_app/presentation/search/bloc/get_list_quiz_search_state.dart';
@@ -15,12 +18,13 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   bool isFilterExpanded = false;
-  List<String> selectedTopics = [];
+  List<TopicEntity> selectedTopics = [];
   RangeValues timeRange = const RangeValues(0, 60);
   RangeValues questionRange = const RangeValues(0, 100);
   String sortBy = "Số lượng người tham gia";
   List<String> topics = ["Math", "Science", "History"];
   List<Map<String, dynamic>> quizzes = [];
+
   void searchQuizzes() {
     //context.read<GetListQuizSearchCubit>()
   }
@@ -31,8 +35,15 @@ class _SearchPageState extends State<SearchPage> {
       appBar: AppBar(
         title: const Text("Search Quizzes"),
       ),
-      body: BlocProvider(
-        create: (BuildContext context) =>GetListQuizSearchCubit()..onGet(""),
+      body: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+              create: (BuildContext context) =>
+                  GetListQuizSearchCubit()..onGet("")),
+          BlocProvider(
+              create: (BuildContext context) =>
+              GetAllTopicCubit()..onGet()),
+        ],
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
@@ -40,7 +51,9 @@ class _SearchPageState extends State<SearchPage> {
               // Bộ lọc và input
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                height: isFilterExpanded ? 500 : 70,
+                constraints: BoxConstraints(
+                  maxHeight: isFilterExpanded ? MediaQuery.of(context).size.height * 0.8 : 70,
+                ),
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
@@ -48,14 +61,12 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 child: Column(
                   children: [
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           "Bộ lọc",
-                          style:
-                              TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         IconButton(
                           icon: Icon(
@@ -72,7 +83,6 @@ class _SearchPageState extends State<SearchPage> {
                       ],
                     ),
                     if (isFilterExpanded) ...[
-
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: TextField(
@@ -84,21 +94,34 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                       ),
                       // Bộ lọc theo topic
-                      Wrap(
-                        spacing: 10,
-                        children: topics.map((topic) {
-                          return FilterChip(
-                            label: Text(topic),
-                            selected: selectedTopics.contains(topic),
-                            onSelected: (isSelected) {
-                              setState(() {
-                                isSelected
-                                    ? selectedTopics.add(topic)
-                                    : selectedTopics.remove(topic);
-                              });
-                            },
-                          );
-                        }).toList(),
+                      BlocBuilder<GetAllTopicCubit, GetAllTopicState>(
+                        builder: (BuildContext context, GetAllTopicState state) {
+                          if (state is GetAllTopicLoading) {
+                            return GetLoading();
+                          }
+                          if (state is GetAllTopicFailure) {
+                            return GetFailure(name: state.error);
+                          }
+                          if (state is GetAllTopicSuccess) {
+                            return Wrap(
+                              spacing: 10,
+                              children: state.topics.map((topic) {
+                                return FilterChip(
+                                  label: Text(topic.name),
+                                  selected: selectedTopics.contains(topic),
+                                  onSelected: (isSelected) {
+                                    setState(() {
+                                      isSelected
+                                          ? selectedTopics.add(topic)
+                                          : selectedTopics.remove(topic);
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            );
+                          }
+                          return GetSomethingWrong();
+                        },
                       ),
                       // Lọc thời gian
                       ListTile(
@@ -168,9 +191,12 @@ class _SearchPageState extends State<SearchPage> {
                   ],
                 ),
               ),
+
               Expanded(
-                child: BlocBuilder<GetListQuizSearchCubit, GetListQuizSearchState>(
-                  builder: (BuildContext context, GetListQuizSearchState state) {
+                child:
+                    BlocBuilder<GetListQuizSearchCubit, GetListQuizSearchState>(
+                  builder:
+                      (BuildContext context, GetListQuizSearchState state) {
                     if (state is GetListQuizSearchLoading) {
                       return const GetLoading();
                     }
@@ -181,7 +207,10 @@ class _SearchPageState extends State<SearchPage> {
                       if (state.listQuiz.isEmpty) {
                         return const GetFailure(name: "Not Found");
                       }
-                      return QuizList(quizList: state.listQuiz,isYour: false,);
+                      return QuizList(
+                        quizList: state.listQuiz,
+                        isYour: false,
+                      );
                     }
                     return const GetSomethingWrong();
                   },

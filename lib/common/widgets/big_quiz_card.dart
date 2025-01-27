@@ -21,7 +21,7 @@ class BigQuizCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               image:  DecorationImage(
-                image: NetworkImage(quiz.imgUrl),
+                image: NetworkImage(quiz.image),
                 fit: BoxFit.cover,
               ),
             ),
@@ -35,7 +35,7 @@ class BigQuizCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "#${quiz.topics[0]}",
+                    "#${quiz.topicId.isEmpty?"not found":quiz.topicId[0].name }",
                     style: const TextStyle(
                       color: Colors.grey,
                       fontSize: 14,
@@ -60,7 +60,7 @@ class BigQuizCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                    Text(
-                    "Questions: ${quiz.numberQues}",
+                    "Questions: ${quiz.questionNumber}",
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 4),

@@ -143,7 +143,7 @@ class _HomeTabState extends State<HomeTab> {
                                 child:
                                     _smallPictureQuiz(state.newQuiz[index],_selectedNewQuiz==index));
                       },
-                      itemCount: state.newQuiz.length,
+                        itemCount: state.newQuiz.length,
                       scrollDirection: Axis.horizontal,
                       separatorBuilder: (BuildContext context, int index) {
                         return const SizedBox(width: 10);
@@ -170,7 +170,7 @@ class _HomeTabState extends State<HomeTab> {
         border: Border.all(color: Colors.black,width:isSelected? 1:0.3),
         borderRadius: BorderRadius.circular(12),
         image: DecorationImage(
-          image: NetworkImage(quiz.imgUrl),
+          image: NetworkImage(quiz.image),
           fit: BoxFit.cover,
         ),
       ),

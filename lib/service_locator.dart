@@ -15,14 +15,20 @@ import 'package:quiz_app/domain/auth/usecase/register_usecase.dart';
 import 'package:quiz_app/domain/post/repository/post_repository.dart';
 import 'package:quiz_app/domain/question/repository/question_repository.dart';
 import 'package:quiz_app/domain/question/usecase/get_list_question_usecase.dart';
+import 'package:quiz_app/domain/question/usecase/get_my_question_usecase.dart';
 import 'package:quiz_app/domain/quiz/repository/quiz_repository.dart';
+import 'package:quiz_app/domain/quiz/usecase/add_quiz_usecase.dart';
+import 'package:quiz_app/domain/quiz/usecase/edit_quiz_detail_usecase.dart';
 import 'package:quiz_app/domain/quiz/usecase/get_list_my_quiz_usecase.dart';
 import 'package:quiz_app/domain/quiz/usecase/get_newest_quiz_usecase.dart';
+import 'package:quiz_app/domain/quiz/usecase/get_quiz_detail_usecase.dart';
 import 'package:quiz_app/domain/quiz/usecase/get_recent_quiz_usecase.dart';
 import 'package:quiz_app/domain/quiz/usecase/get_hot_quiz_usecase.dart';
+import 'package:quiz_app/domain/quiz/usecase/remove_question_from_quiz_usecase.dart';
 import 'package:quiz_app/domain/quiz/usecase/search_list_quiz_usecase.dart';
 import 'package:quiz_app/domain/team/repository/team_repository.dart';
 
+import 'data/api_service.dart';
 import 'domain/quiz/usecase/get_all_topic_usecase.dart';
 
 
@@ -53,10 +59,16 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<GetListMyQuizUseCase>(GetListMyQuizUseCase());
   sl.registerSingleton<SearchListQuizUseCase>(SearchListQuizUseCase());
   sl.registerSingleton<GetAllTopicUseCase>(GetAllTopicUseCase());
-
-
-
-
+  sl.registerSingleton<AddQuizUseCase>(AddQuizUseCase());
+  sl.registerSingleton<GetQuizDetailUseCase>(GetQuizDetailUseCase());
+  sl.registerSingleton<RemoveQuestionFromQuizUseCase>(RemoveQuestionFromQuizUseCase());
+  sl.registerSingleton<EditQuizDetailUseCase>(EditQuizDetailUseCase());
   //question
   sl.registerSingleton<GetListQuestionUseCase>(GetListQuestionUseCase());
+  sl.registerSingleton<GetMyQuestionUseCase>(GetMyQuestionUseCase());
+
+
+
+  sl.registerSingleton<TokenService>(TokenService());
+  sl.registerFactory(() => ApiService(sl<TokenService>()));
 }

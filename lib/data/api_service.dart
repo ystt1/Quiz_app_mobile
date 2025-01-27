@@ -4,9 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   final TokenService _tokenService;
-  final String baseUrl;
 
-  ApiService(this._tokenService, {required this.baseUrl});
+  ApiService(this._tokenService);
 
   Future<http.Response> get(String endpoint) async {
     final token = await _tokenService.getAccessToken();
@@ -14,14 +13,12 @@ class ApiService {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
-
-    final response = await http.get(Uri.parse('$baseUrl$endpoint'), headers: headers);
-
+    final response = await http.get(Uri.parse(endpoint), headers: headers);
     if (response.statusCode == 401) {
-      // Làm mới token nếu hết hạn
+
       final isRefreshed = await _refreshToken();
       if (isRefreshed) {
-        return get(endpoint); // Gửi lại request với token mới
+        return get(endpoint);
       } else {
         throw Exception('Refresh token failed');
       }
@@ -29,6 +26,7 @@ class ApiService {
 
     return response;
   }
+
 
   Future<http.Response> post(String endpoint, Map<String, dynamic> data) async {
     final token = await _tokenService.getAccessToken();
@@ -38,11 +36,62 @@ class ApiService {
     };
 
     final response = await http.post(
-      Uri.parse('$baseUrl$endpoint'),
+      Uri.parse(endpoint),
       headers: headers,
       body: jsonEncode(data),
     );
 
+    if (response.statusCode == 401) {
+      final isRefreshed = await _refreshToken();
+      if (isRefreshed) {
+        return post(endpoint, data);
+      } else {
+        throw Exception('Refresh token failed');
+      }
+    }
+
+    return response;
+  }
+
+
+  Future<http.Response> delete(String endpoint, Map<String, dynamic> data) async {
+    final token = await _tokenService.getAccessToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+
+    final response = await http.delete(
+      Uri.parse('$endpoint'),
+      headers: headers,
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 401) {
+      final isRefreshed = await _refreshToken();
+      if (isRefreshed) {
+        return post(endpoint, data); // Gửi lại request với token mới
+      } else {
+        throw Exception('Refresh token failed');
+      }
+    }
+
+    return response;
+  }
+
+  Future<http.Response> put(String endpoint, Map<String, dynamic> data) async {
+    final token = await _tokenService.getAccessToken();
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+
+    final response = await http.put(
+      Uri.parse('$endpoint'),
+      headers: headers,
+      body: jsonEncode(data),
+    );
+  print(response.body);
     if (response.statusCode == 401) {
       final isRefreshed = await _refreshToken();
       if (isRefreshed) {

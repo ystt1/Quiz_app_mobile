@@ -8,14 +8,14 @@ class TopicModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': this.id,
+      '_id': this.id,
       'name': this.name,
     };
   }
 
   factory TopicModel.fromMap(Map<String, dynamic> map) {
     return TopicModel(
-      id: map['id'] as String,
+      id: map['_id'] as String,
       name: map['name'] as String,
     );
   }

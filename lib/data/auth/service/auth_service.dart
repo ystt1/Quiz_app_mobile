@@ -25,7 +25,7 @@ class AuthServiceImp extends AuthService {
           var result= TokenGetModel.fromMap(jsonDecode(response.body));
           return Right(result);
         }
-      return Left(response.body);
+      return Left((jsonDecode(response.body)["message"]["message"])??"Some thing went wrong");
     } catch (e) {
       return Left(e.toString());
     }

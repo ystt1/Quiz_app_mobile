@@ -6,53 +6,72 @@ import 'package:quiz_app/common/bloc/topic/select_topic_cubit.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
-import 'package:quiz_app/data/quiz/models/quiz_payload_model.dart';
+import 'package:quiz_app/data/quiz/models/edit_quiz_model.dart';
+import 'package:quiz_app/data/quiz/models/quiz_model.dart';
+import 'package:quiz_app/domain/question/entity/basic_question_entity.dart';
+import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
 import 'package:quiz_app/domain/quiz/entity/topic_entity.dart';
-import 'package:quiz_app/domain/quiz/usecase/add_quiz_usecase.dart';
+import 'package:quiz_app/domain/quiz/usecase/edit_quiz_detail_usecase.dart';
 import 'package:quiz_app/presentation/library/bloc/get_all_topic_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/get_all_topic_state.dart';
 
-class AddQuizModal extends StatefulWidget {
+class EditQuizModal extends StatefulWidget {
   final VoidCallback onRefresh;
-  const AddQuizModal({Key? key, required this.onRefresh}) : super(key: key);
+  final BasicQuizEntity quiz;
+
+  const EditQuizModal({Key? key, required this.onRefresh, required this.quiz})
+      : super(key: key);
 
   @override
-  State<AddQuizModal> createState() => _AddQuizModalState();
+  State<EditQuizModal> createState() => _EditQuizModalState();
 }
 
-class _AddQuizModalState extends State<AddQuizModal> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
+class _EditQuizModalState extends State<EditQuizModal> {
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _timeController;
 
-  String quizImageUrl = '';
 
-  void _saveQuiz(BuildContext context,List<TopicEntity> topics) {
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.quiz.name);
+    _descriptionController =
+        TextEditingController(text: widget.quiz.description);
+    _timeController = TextEditingController(text: widget.quiz.time.toString());
+  }
+
+  void _updateQuiz(BuildContext context,List<TopicEntity> topics) {
     String quizName = _nameController.text;
     String quizDescription = _descriptionController.text;
     String quizTime = _timeController.text;
 
     if (quizName.isEmpty ||
         quizDescription.isEmpty ||
-        quizImageUrl.isEmpty ||
         quizTime.isEmpty ||
         topics.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content:
-                Text('Please fill all fields and select at least one topic')),
+          content: Text('Please fill all fields and select at least one topic'),
+        ),
       );
       return;
     }
+
     context.read<ButtonStateCubit>().execute(
-        usecase: AddQuizUseCase(),
-        params: QuizPayloadModel(
-            name: _nameController.text,
-            description: _descriptionController.text,
-            topicId: topics.map((TopicEntity e) => e.toModel()).toList(),
-            image: quizImageUrl,
-            idCreator: "679490050e9a9e0d0a9d73af",
-            time: int.parse(_timeController.text)));
+          usecase: EditQuizDetailUseCase(),
+          params: EditQuizModel(
+              id: widget.quiz.id,
+              name: quizName,
+              description: quizDescription,
+              topicId: topics.map((e)=>e.toModel()).toList(),
+              questions: widget.quiz.questions.map((e)=>e.toModel()).toList(),
+              image: widget.quiz.image,
+              idCreator: widget.quiz.idCreator,
+              status: widget.quiz.status,
+              time: int.parse(quizTime),
+             ),
+        );
   }
 
   void _toggleTopic(BuildContext context,TopicEntity topic,List<TopicEntity> topics) {
@@ -77,22 +96,22 @@ class _AddQuizModalState extends State<AddQuizModal> {
             create: (BuildContext context) => ButtonStateCubit(),
           ),
           BlocProvider(
-            create: (BuildContext context) => SelectTopicCubit([]),
-          )
+            create: (BuildContext context) => SelectTopicCubit(widget.quiz.topicId),
+          ),
         ],
-        child: BlocListener<ButtonStateCubit,ButtonState>(
-          listener: (BuildContext context, state) { 
-            if(state is ButtonLoadingState)
-              {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GetLoading()));
-              }
-            if(state is ButtonFailureState)
-            {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GetFailure(name: state.errorMessage)));
+        child: BlocListener<ButtonStateCubit, ButtonState>(
+          listener: (BuildContext context, state) {
+            if (state is ButtonLoadingState) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: GetLoading()));
             }
-            if(state is ButtonSuccessState)
-            {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GetFailure(name: "success")));
+            if (state is ButtonFailureState) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: GetFailure(name: state.errorMessage)));
+            }
+            if (state is ButtonSuccessState) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: GetFailure(name: "success")));
               widget.onRefresh();
               Navigator.pop(context);
             }
@@ -102,11 +121,10 @@ class _AddQuizModalState extends State<AddQuizModal> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
-                // Ensure modal height adapts to content
                 children: [
                   const Center(
                     child: Text(
-                      'Add a New Quiz',
+                      'Edit Quiz',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -138,19 +156,6 @@ class _AddQuizModalState extends State<AddQuizModal> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Quiz Image URL'),
-                  TextField(
-                    onChanged: (value) {
-                      quizImageUrl = value;
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Enter image URL or local image name...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   const Text('Topics'),
                   BlocBuilder<GetAllTopicCubit, GetAllTopicState>(
                     builder: (BuildContext context, GetAllTopicState state) {
@@ -161,21 +166,21 @@ class _AddQuizModalState extends State<AddQuizModal> {
                         return GetFailure(name: state.error);
                       }
                       if (state is GetAllTopicSuccess) {
-                        return Wrap(
-                          spacing: 8.0,
-                          runSpacing: 4.0,
-                          children: state.topics.map((topic) {
-                            return FilterChip(
-                              label: Text(topic.name),
-                              selected: topics.contains(topic),
-                              onSelected: (isSelected) {
-                                _toggleTopic(context,topic,topics);
-                              },
-                              selectedColor: Colors.blueAccent.withOpacity(0.2),
-                              backgroundColor: Colors.grey.shade200,
+                            return Wrap(
+                              spacing: 8.0,
+                              runSpacing: 4.0,
+                              children: state.topics.map((topic) {
+                                return FilterChip(
+                                  label: Text(topic.name),
+                                  selected: topics.any((e) => e.id == topic.id),
+                                  onSelected: (isSelected) {
+                                    _toggleTopic(context,topic,topics);
+                                  },
+                                  selectedColor: Colors.blueAccent.withOpacity(0.2),
+                                  backgroundColor: Colors.grey.shade200,
+                                );
+                              }).toList(),
                             );
-                          }).toList(),
-                        );
                       }
                       return GetSomethingWrong();
                     },
@@ -194,23 +199,22 @@ class _AddQuizModalState extends State<AddQuizModal> {
                   ),
                   const SizedBox(height: 16),
                   Builder(
-                      builder: (context) {
-                        return ElevatedButton(
-                          onPressed: () => _saveQuiz(context,topics),
-                          child: const Text('Save Quiz'),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                    builder: (context) {
+                      return ElevatedButton(
+                        onPressed: () => _updateQuiz(context,topics),
+                        child: const Text('Update Quiz'),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        );
-                      }
+                        ),
+                      );
+                    },
                   ),
                 ],
               );
             },
-
           ),
         ),
       ),
