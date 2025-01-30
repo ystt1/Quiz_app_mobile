@@ -81,7 +81,6 @@ class _LibraryPageState extends State<LibraryPage> {
                       onSearch: (state) {
                         _selectedTabIndex == 0?
                           onGetQuiz(context, state):onGetQuestion(context, state);
-
                       },
                     ),
                     Expanded(
@@ -89,8 +88,8 @@ class _LibraryPageState extends State<LibraryPage> {
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: _selectedTabIndex == 0
-                              ? _buildQuizList(quizzes)
-                              : _buildQuestionList(questions),
+                              ? _buildQuizList(quizzes,context)
+                              : _buildQuestionList(questions,context),
                         ),
                       ),
                     ),
@@ -157,7 +156,7 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _buildQuizList(quizzes) {
+  Widget _buildQuizList(quizzes,BuildContext context) {
     if (quizzes is GetMyQuizLoading) {
       return const GetLoading();
     }
@@ -173,7 +172,7 @@ class _LibraryPageState extends State<LibraryPage> {
     return GetSomethingWrong();
   }
 
-  Widget _buildQuestionList(questions) {
+  Widget _buildQuestionList(questions,BuildContext context) {
 
       if (questions is GetMyQuestionLoading) {
         return const GetLoading();

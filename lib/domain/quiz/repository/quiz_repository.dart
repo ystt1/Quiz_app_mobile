@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:quiz_app/data/question/models/search_sort_model.dart';
+import 'package:quiz_app/data/quiz/models/practice_payload.dart';
 import 'package:quiz_app/data/quiz/models/quiz_quetion_payload.dart';
 
 import '../../../data/quiz/models/edit_quiz_model.dart';
@@ -18,4 +19,5 @@ abstract class QuizRepository{
   Future<Either> removeQuestionFromQuiz(QuizQuestionPayload quizQues);
   Future<Either> searchListQuiz();
   Future<Either> getAllTopic();
+  Future<Either> submitResult(PracticePayloadModel result);
 }

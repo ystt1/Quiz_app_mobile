@@ -27,6 +27,22 @@ class BasicQuizEntity {
       required this.time,
       required this.createdAt,
       required this.questionNumber});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': this.id,
+      'name': this.name,
+      'description': this.description,
+      'topicId': this.topicId,
+      'questions': this.questions,
+      'image': this.image,
+      'idCreator': this.idCreator,
+      'status': this.status,
+      'time': this.time,
+      'createdAt': this.createdAt,
+      'questionNumber': this.questionNumber,
+    };
+  }
 }
 
 extension BasicQuizEntityToModel on BasicQuizEntity {

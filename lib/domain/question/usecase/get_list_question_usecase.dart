@@ -7,7 +7,7 @@ import '../../../service_locator.dart';
 class GetListQuestionUseCase implements UseCase<Either,dynamic> {
   @override
   Future<Either> call({params}) async {
-   return await sl<QuestionRepository>().getListQuestion();
+   return await sl<QuestionRepository>().getListQuestion(params);
   }
 
 }

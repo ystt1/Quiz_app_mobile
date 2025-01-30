@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_app/presentation/profile/page/profile_page.dart';
 import 'package:quiz_app/presentation/search/pages/search_page.dart';
 
 class Header extends StatelessWidget {
@@ -19,9 +20,17 @@ class Header extends StatelessWidget {
         ),
         Row(
           children: [
-            const CircleAvatar(
-              backgroundImage: AssetImage('assets/img/user-avatar.png'),
-              radius: 20,
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                );
+              },
+              child: const CircleAvatar(
+                backgroundImage: AssetImage('assets/img/user-avatar.png'),
+                radius: 20,
+              ),
             ),
             const SizedBox(width: 12),
             IconButton(

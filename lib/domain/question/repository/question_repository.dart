@@ -8,7 +8,7 @@ abstract class QuestionRepository{
   Future<Either> addQuestion(QuestionPayload question);
   Future<Either> deleteQuestion();
   Future<Either> editQuestion(EditQuestionPayloadModel question);
-  Future<Either> getListQuestion();
+  Future<Either> getListQuestion(String quizId);
   Future<Either> getQuestionDetail();
   Future<Either> getMyQuestion(SearchAndSortModel searchSort);
 }

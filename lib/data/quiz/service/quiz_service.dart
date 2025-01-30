@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
 import 'package:quiz_app/data/question/models/search_sort_model.dart';
+import 'package:quiz_app/data/quiz/models/practice_payload.dart';
 import 'package:quiz_app/data/quiz/models/quiz_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:quiz_app/data/quiz/models/quiz_payload_model.dart';
 import 'package:quiz_app/data/quiz/models/quiz_quetion_payload.dart';
+import 'package:quiz_app/data/quiz/models/result_model.dart';
 import 'package:quiz_app/data/quiz/models/topic_model.dart';
 
 import '../../../service_locator.dart';
@@ -35,6 +37,8 @@ abstract class QuizService {
   Future<Either> searchListQuizService();
 
   Future<Either> getAllTopic();
+
+  Future<Either> submitResultService(PracticePayloadModel result);
 }
 
 class QuizServiceImp extends QuizService {
@@ -232,6 +236,24 @@ class QuizServiceImp extends QuizService {
       }
       return Left((jsonDecode(response.body)["message"]["message"])??"Some thing went wrong");
     } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either> submitResultService(PracticePayloadModel result) async {
+    try {
+      final apiService = sl<ApiService>();
+      final response = await apiService.post('http://localhost:5000/api/result',result.toMap() );
+      print(response.body);
+      if(response.statusCode==200)
+      {
+        final data=ResultModel.fromMap(jsonDecode(response.body));
+        return Right(data);
+      }
+      return Left((jsonDecode(response.body)["message"]["message"])??"Some thing went wrong");
+    } catch (e) {
+      print(e.toString());
       return Left(e.toString());
     }
   }

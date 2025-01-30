@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:quiz_app/domain/team/entity/team_entity.dart';
 
 import '../widgets/post_tab.dart';
 
 class TeamDetailPage extends StatefulWidget {
-  const TeamDetailPage({super.key});
+  final TeamEntity team;
+  const TeamDetailPage({super.key, required this.team});
 
   @override
   State<TeamDetailPage> createState() => _TeamDetailPageState();

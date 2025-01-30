@@ -40,6 +40,7 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
 
   void onChangePrivacy(BuildContext context,bool isActive,BasicQuizEntity quiz)
   {
+    print(isActive);
     context.read<ButtonStateCubit>().execute(
       usecase: EditQuizDetailUseCase(),
       params: EditQuizModel(

@@ -4,6 +4,7 @@ import 'package:quiz_app/common/bloc/token_state.dart';
 import 'package:quiz_app/core/constant/app_theme.dart';
 import 'package:quiz_app/presentation/auth/pages/login_page.dart';
 import 'package:quiz_app/presentation/home/pages/home_page.dart';
+import 'package:quiz_app/presentation/home/pages/route_observer.dart';
 import 'package:quiz_app/service_locator.dart';
 
 import 'common/bloc/token_cubit.dart';
@@ -51,6 +52,7 @@ class MyApp extends StatelessWidget {
           if(state is TokenSuccess)
             {
               return const HomePage();
+
             }
           return const LoginPage();
         }));

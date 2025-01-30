@@ -25,9 +25,9 @@ class QuestionRepositoryImp extends QuestionRepository {
   }
 
   @override
-  Future<Either> getListQuestion() async {
+  Future<Either> getListQuestion(String quizId) async {
     try {
-      final response = await sl<QuestionService>().getListQuestionService();
+      final response = await sl<QuestionService>().getListQuestionService(quizId);
       return response.fold((error) => Left(error), (data) {
         var returnData = (data as List<BasicQuestionModel>)
             .map((e) => e.toEntity())

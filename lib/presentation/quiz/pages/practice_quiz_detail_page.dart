@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
+import 'package:quiz_app/presentation/quiz/pages/do_practice_page.dart';
 
 
 class PracticeQuizDetailPage extends StatelessWidget {
   final BasicQuizEntity quiz;
   const PracticeQuizDetailPage({super.key, required this.quiz});
-
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -103,7 +103,11 @@ class PracticeQuizDetailPage extends StatelessWidget {
                   const SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: () {
-                      // Navigate to the quiz page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => PracticePage(quiz: quiz,)),
+                      );
+
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,

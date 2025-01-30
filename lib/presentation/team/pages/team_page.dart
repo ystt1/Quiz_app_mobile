@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:quiz_app/common/widgets/add_team_modal.dart';
+import 'package:quiz_app/common/widgets/get_failure.dart';
+import 'package:quiz_app/common/widgets/get_loading.dart';
+import 'package:quiz_app/common/widgets/get_something_wrong.dart';
 import 'package:quiz_app/common/widgets/search_sort.dart';
 import 'package:quiz_app/common/widgets/team_card.dart';
+import 'package:quiz_app/domain/team/usecase/get_list_team_usecase.dart';
+import 'package:quiz_app/presentation/team/bloc/get_team_cubit.dart';
+import 'package:quiz_app/presentation/team/bloc/get_team_state.dart';
 import 'package:quiz_app/presentation/team/pages/team_detail_page.dart';
 
 class TeamPage extends StatefulWidget {
@@ -16,45 +24,6 @@ class _TeamPageState extends State<TeamPage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   String? qrCodeResult;
 
-  List<Map<String, dynamic>> teams = [
-    {
-      'name': 'Flutter Devs',
-      'owner': 'John Doe',
-      'members': 120,
-      'avatar': 'https://via.placeholder.com/150',
-      'joined': true,
-    },
-    {
-      'name': 'React Native Team',
-      'owner': 'Jane Smith',
-      'members': 95,
-      'avatar': 'https://via.placeholder.com/150',
-      'joined': false,
-    },
-    {
-      'name': 'Backend Gurus',
-      'owner': 'Alice Johnson',
-      'members': 80,
-      'avatar': 'https://via.placeholder.com/150',
-      'joined': false,
-    },
-  ];
-
-  String searchQuery = '';
-
-  void _addNewTeam() {
-    setState(() {
-      teams.add({
-        'name': 'New Team',
-        'owner': 'New Owner',
-        'members': 0,
-        'avatar': 'https://via.placeholder.com/150',
-        'joined': false,
-      });
-    });
-  }
-
-  // Hàm quét QR code trực tiếp bằng camera
   void _scanQRCode() {
     showDialog(
       context: context,
@@ -71,8 +40,8 @@ class _TeamPageState extends State<TeamPage> {
                   setState(() {
                     qrCodeResult = scanData.code;
                   });
-                  controller.dispose(); // Dừng quét sau khi nhận được kết quả
-                  Navigator.pop(context); // Đóng dialog
+                  controller.dispose();
+                  Navigator.pop(context);
                 });
               },
             ),
@@ -81,7 +50,6 @@ class _TeamPageState extends State<TeamPage> {
       },
     ).then((_) {
       if (qrCodeResult != null) {
-        print('QR Code Result: $qrCodeResult');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('QR Code: $qrCodeResult')),
         );
@@ -89,13 +57,12 @@ class _TeamPageState extends State<TeamPage> {
     });
   }
 
+  void onRefresh(BuildContext context) {
+    context.read<GetTeamCubit>().onGet(usecase: GetListTeamUseCase());
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> filteredTeams = teams
-        .where((team) =>
-        team['name'].toLowerCase().contains(searchQuery.toLowerCase()))
-        .toList();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Teams',
@@ -111,40 +78,63 @@ class _TeamPageState extends State<TeamPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: SearchSort(
-              onSearch: (state) {
-                print('Search and Sort State: ${state.name}, ${state.sortField}, ${state.direction}');
-              },
+      body: BlocProvider(
+        create: (BuildContext context) =>
+            GetTeamCubit()..onGet(usecase: GetListTeamUseCase()),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: SearchSort(
+                onSearch: (state) {
+                  print(
+                      'Search and Sort State: ${state.name}, ${state.sortField}, ${state.direction}');
+                },
+              ),
             ),
-          ),
-          Expanded(
-            child: ListView.separated(
-              itemCount: filteredTeams.length,
-              separatorBuilder: (context, index) =>
-              const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TeamDetailPage(),
-                      ),
-                    );
-                  },
-                  child: TeamCard(),
+            BlocBuilder<GetTeamCubit, GetTeamState>(
+                builder: (BuildContext context, GetTeamState teams) {
+              if (teams is GetTeamLoading) {
+                return GetLoading();
+              }
+              if (teams is GetTeamFailure) {
+                return GetFailure(name: teams.error);
+              }
+              if (teams is GetTeamSuccess) {
+                return Expanded(
+                  child: ListView.separated(
+                    itemCount: teams.teams.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      return TeamCard(
+                        team: teams.teams[index],
+                        onRefresh: () {
+                          onRefresh(context);
+                        },
+                      );
+                    },
+                  ),
                 );
-              },
-            ),
-          ),
-        ],
+              }
+              ;
+              return GetSomethingWrong();
+            }),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addNewTeam,
+        onPressed: () {
+          showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+              ),
+              builder: (innerContext) {
+                return AddTeamModal();
+              });
+        },
         backgroundColor: Colors.blueAccent,
         child: const Icon(Icons.add),
         tooltip: 'Add New Team',

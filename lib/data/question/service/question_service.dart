@@ -13,7 +13,7 @@ abstract class QuestionService{
   Future<Either> addQuestionService(QuestionPayload question);
   Future<Either> deleteQuestionService();
   Future<Either> editQuestionService(EditQuestionPayloadModel question);
-  Future<Either> getListQuestionService();
+  Future<Either> getListQuestionService(String quizId);
   Future<Either> getListMyQuestionService(SearchAndSortModel searchSort);
   Future<Either> getQuestionDetailService();
 }
@@ -76,7 +76,6 @@ class QuestionServiceImp extends QuestionService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.post('http://localhost:5000/api/question', question.toMap());
-      print(response);
       if(response.statusCode==200)
       {
         return Right(true);
@@ -113,10 +112,10 @@ class QuestionServiceImp extends QuestionService {
 
 
   @override
-  Future<Either> getListQuestionService() async {
+  Future<Either> getListQuestionService(String quizId) async {
     try {
-      final uri = Uri.parse('http://localhost:5000/api/question');
-      final response = await http.get(uri);
+      final apiService = sl<ApiService>();
+      final response = await apiService.get('http://localhost:5000/api/quiz/practice/${quizId}');
       if(response.statusCode==200)
       {
         final List<dynamic> data = jsonDecode(response.body)["data"];
@@ -138,7 +137,6 @@ class QuestionServiceImp extends QuestionService {
   @override
   Future<Either> getListMyQuestionService(SearchAndSortModel searchSort) async {
     try {
-      print(searchSort);
       final apiService = sl<ApiService>();
       final response = await apiService.get('http://localhost:5000/api/question/get-my-question?name=${searchSort.name}&sortField=${searchSort.sortField}&sortOrder=${searchSort.direction}');
       if(response.statusCode==200)

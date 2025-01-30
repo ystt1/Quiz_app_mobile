@@ -15,7 +15,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  // Tạo GlobalKey cho từng Navigator
+
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -30,7 +30,6 @@ class _HomePageState extends State<HomePage> {
         _selectedIndex = index;
       });
     } else {
-      // Reset về màn hình đầu tiên trong tab hiện tại
       _navigatorKeys[index].currentState!.popUntil((route) => route.isFirst);
     }
   }

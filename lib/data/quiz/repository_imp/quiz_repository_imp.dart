@@ -1,8 +1,10 @@
 import 'package:dartz/dartz.dart';
 import 'package:quiz_app/data/question/models/search_sort_model.dart';
+import 'package:quiz_app/data/quiz/models/practice_payload.dart';
 import 'package:quiz_app/data/quiz/models/quiz_model.dart';
 import 'package:quiz_app/data/quiz/models/quiz_payload_model.dart';
 import 'package:quiz_app/data/quiz/models/quiz_quetion_payload.dart';
+import 'package:quiz_app/data/quiz/models/result_model.dart';
 import 'package:quiz_app/data/quiz/models/topic_model.dart';
 import 'package:quiz_app/data/quiz/service/quiz_service.dart';
 import 'package:quiz_app/domain/quiz/repository/quiz_repository.dart';
@@ -130,6 +132,19 @@ class QuizRepositoryImp extends QuizRepository {
       return response.fold((error) => Left(error), (data) {
         final entity = (data as List<TopicModel>)
             .map((TopicModel topic) => topic.toEntity()).toList();
+        return Right(entity);
+      });
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either> submitResult(PracticePayloadModel result) async {
+    try {
+      final response = await sl<QuizService>().submitResultService(result);
+      return response.fold((error) => Left(error), (data) {
+        final entity = (data as ResultModel).toEntity();
         return Right(entity);
       });
     } catch (e) {
