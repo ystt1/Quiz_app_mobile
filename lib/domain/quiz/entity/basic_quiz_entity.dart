@@ -4,16 +4,16 @@ import 'package:quiz_app/domain/quiz/entity/topic_entity.dart';
 
 class BasicQuizEntity {
   final String id;
-  final String name;
-  final String description;
-  final List<TopicEntity> topicId;
-  final List<BasicQuestionEntity> questions;
-  final String image;
+  late String name;
+  late String description;
+  late List<TopicEntity> topicId;
+  late  List<BasicQuestionEntity> questions;
+  late String image;
   final String idCreator;
-  final String status;
-  final int time;
+  late String status;
+  late int time;
   final String createdAt;
-  final int questionNumber;
+  late  int questionNumber;
 
   BasicQuizEntity(
       {required this.id,

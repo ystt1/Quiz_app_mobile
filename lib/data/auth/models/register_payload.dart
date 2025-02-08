@@ -7,7 +7,7 @@ class RegisterPayload{
 
   Map<String, dynamic> toMap() {
     return {
-      'usernam': this.useName,
+      'username': this.useName,
       'password': this.password,
       'email': this.gmail,
     };

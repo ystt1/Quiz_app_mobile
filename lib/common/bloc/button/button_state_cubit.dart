@@ -8,17 +8,17 @@ import 'button_state.dart';
 class ButtonStateCubit extends Cubit<ButtonState> {
   ButtonStateCubit() : super(ButtonInitialState());
 
-  Future<void> execute({dynamic params, required UseCase usecase}) async {
+  Future<void> execute({dynamic params, required UseCase usecase,String? type,int? index}) async {
     emit(ButtonLoadingState());
     try {
       Either returnedData = await usecase.call(params: params);
-
       returnedData.fold((error) {
         emit(ButtonFailureState(errorMessage: error));
       }, (data) {
-        emit(ButtonSuccessState());
+        emit(ButtonSuccessState(type ?? "default_type", index ?? 0));
       });
     } catch (e) {
+      print(e.toString());
       emit(ButtonFailureState(errorMessage: e.toString()));
     }
   }

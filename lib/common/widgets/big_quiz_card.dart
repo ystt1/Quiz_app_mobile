@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_app/common/widgets/build_base_64_image.dart';
 
 import '../../domain/quiz/entity/basic_quiz_entity.dart';
 import '../../presentation/quiz/pages/practice_quiz_detail_page.dart';
@@ -11,7 +12,7 @@ class BigQuizCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: (){Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => PracticeQuizDetailPage(quiz: quiz,)),
+        MaterialPageRoute(builder: (context) => PracticeQuizDetailPage(quizId: quiz.id,)),
       );},
       child: Row(
         children: [
@@ -20,11 +21,9 @@ class BigQuizCard extends StatelessWidget {
             width: 160,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              image:  DecorationImage(
-                image: NetworkImage(quiz.image),
-                fit: BoxFit.cover,
-              ),
+
             ),
+            child: ClipRRect(borderRadius: BorderRadius.circular(16),child: Base64ImageWidget(base64String: quiz.image,)),
           ),
            const SizedBox(width: 16),
           Expanded(

@@ -1,8 +1,10 @@
+import 'package:quiz_app/data/quiz/models/simple_quiz_model.dart';
+import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
 import 'package:quiz_app/domain/quiz/entity/result_entity.dart';
 
 class ResultModel {
   final String idParticipant;
-  final String quizId;
+  final SimpleQuizModel quizId;
   final List<List<String>> userAnswers;
   final int score;
   final int completeTime;
@@ -28,7 +30,7 @@ class ResultModel {
   factory ResultModel.fromMap(Map<String, dynamic> map) {
     return ResultModel(
       idParticipant: map['idParticipant'] ?? '',
-      quizId: map['idQuiz'] ?? '',
+      quizId: SimpleQuizModel.fromMap(map['idQuiz']) ,
       userAnswers: (map['userAnswers'] as List?)
               ?.map((innerList) =>
                   (innerList as List?)
@@ -66,7 +68,7 @@ extension ResultModelToEntity on ResultModel {
   ResultEntity toEntity() {
     return ResultEntity(
         idParticipant: idParticipant,
-        quizId: quizId,
+        quizId: quizId.toEntity(),
         userAnswers: userAnswers,
         score: score,
         completeTime: completeTime,

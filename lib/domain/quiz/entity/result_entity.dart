@@ -1,6 +1,8 @@
+import 'package:quiz_app/domain/quiz/entity/simple_quiz_entity.dart';
+
 class ResultEntity {
   final String idParticipant;
-  final String quizId;
+  final SimpleQuizEntity quizId;
   final List<List<String>> userAnswers;
   final int score;
   final int completeTime;

@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quiz_app/common/bloc/button/button_state.dart';
 import 'package:quiz_app/common/bloc/button/button_state_cubit.dart';
 import 'package:quiz_app/common/bloc/topic/select_topic_cubit.dart';
+import 'package:quiz_app/common/widgets/build_base_64_image.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
@@ -11,6 +14,8 @@ import 'package:quiz_app/domain/quiz/entity/topic_entity.dart';
 import 'package:quiz_app/domain/quiz/usecase/add_quiz_usecase.dart';
 import 'package:quiz_app/presentation/library/bloc/get_all_topic_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/get_all_topic_state.dart';
+
+import '../helper/get_img_string.dart';
 
 class AddQuizModal extends StatefulWidget {
   final VoidCallback onRefresh;
@@ -51,7 +56,6 @@ class _AddQuizModalState extends State<AddQuizModal> {
             description: _descriptionController.text,
             topicId: topics.map((TopicEntity e) => e.toModel()).toList(),
             image: quizImageUrl,
-            idCreator: "679490050e9a9e0d0a9d73af",
             time: int.parse(_timeController.text)));
   }
 
@@ -139,16 +143,24 @@ class _AddQuizModalState extends State<AddQuizModal> {
                   ),
                   const SizedBox(height: 16),
                   const Text('Quiz Image URL'),
-                  TextField(
-                    onChanged: (value) {
-                      quizImageUrl = value;
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Enter image URL or local image name...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  Row(
+                    children: [
+                      IconButton(onPressed: () async {
+                        String? imageString = await getImgString();
+                        if(imageString!=null) {
+                          setState(() {
+                            quizImageUrl = imageString!;
+                          });
+                        }
+
+                      }, icon: Icon(Icons.image)),
+                      Container(
+                        height: 50,
+                        width: 50,
+                        child: quizImageUrl!=""? Base64ImageWidget(base64String: quizImageUrl,):SizedBox(),
                       ),
-                    ),
+                      
+                    ],
                   ),
                   const SizedBox(height: 16),
                   const Text('Topics'),
@@ -181,7 +193,7 @@ class _AddQuizModalState extends State<AddQuizModal> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  const Text('Time (in minutes)'),
+                  const Text('Time (in second)'),
                   TextField(
                     controller: _timeController,
                     keyboardType: TextInputType.number,

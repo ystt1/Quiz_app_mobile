@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quiz_app/presentation/quiz/bloc/timer_state.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class WorkoutCubit extends Cubit<WorkoutState> {
   Timer? _timer;
@@ -16,15 +16,15 @@ class WorkoutCubit extends Cubit<WorkoutState> {
         emit(WorkoutInProgress(wip.elapsed! - 1));
       } else {
         _timer?.cancel();
-        Wakelock.disable();
-        emit(const WorkoutInitial());
+        WakelockPlus.disable();
+        emit(const WorkoutFinish());
         _onTimeUp();
       }
     }
   }
 
   void startWorkout(int totalTime) {
-    Wakelock.enable();
+    WakelockPlus.enable();
     emit(WorkoutInProgress(totalTime));
 
     _timer?.cancel();
@@ -42,7 +42,7 @@ class WorkoutCubit extends Cubit<WorkoutState> {
   @override
   Future<void> close() {
     _timer?.cancel();
-    Wakelock.disable();
+    WakelockPlus.disable();
     return super.close();
   }
 }

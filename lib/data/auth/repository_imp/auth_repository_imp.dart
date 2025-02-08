@@ -25,6 +25,7 @@ class AuthRepositoryImp extends AuthRepository {
   @override
   Future<Either> register(RegisterPayload registerPayload) async {
     try {
+      print(registerPayload.toMap());
       final response = await sl<AuthService>().register(registerPayload);
       return response;
     }

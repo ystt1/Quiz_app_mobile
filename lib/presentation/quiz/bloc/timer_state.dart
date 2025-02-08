@@ -21,3 +21,8 @@ class WorkoutInProgress extends WorkoutState{
   // TODO: implement props
   List<Object?> get props => [ elapsed];
 }
+
+class WorkoutFinish extends WorkoutState{
+  const WorkoutFinish():super(-1);
+  List<Object?> get props => [];
+}

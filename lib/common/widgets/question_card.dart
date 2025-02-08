@@ -42,9 +42,13 @@ class QuestionCard extends StatelessWidget {
                   ),
                 ),
                 !isSelectedMode?
-                  IconButton(
-                    onPressed: onDelete,
-                    icon: const Icon(Icons.delete, color: Colors.red),
+                  Builder(
+                    builder: (context) {
+                      return IconButton(
+                        onPressed: onDelete,
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                      );
+                    }
                   ):Checkbox(value: isSelected, onChanged: (value){})
               ],
             ),

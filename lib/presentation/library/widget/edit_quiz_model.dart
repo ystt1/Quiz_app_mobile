@@ -7,20 +7,23 @@ import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
 import 'package:quiz_app/data/quiz/models/edit_quiz_model.dart';
-import 'package:quiz_app/data/quiz/models/quiz_model.dart';
-import 'package:quiz_app/domain/question/entity/basic_question_entity.dart';
 import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
 import 'package:quiz_app/domain/quiz/entity/topic_entity.dart';
 import 'package:quiz_app/domain/quiz/usecase/edit_quiz_detail_usecase.dart';
 import 'package:quiz_app/presentation/library/bloc/get_all_topic_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/get_all_topic_state.dart';
+import 'package:quiz_app/presentation/library/bloc/get_quiz_detail_cubit.dart';
 
 class EditQuizModal extends StatefulWidget {
   final VoidCallback onRefresh;
   final BasicQuizEntity quiz;
+  final BuildContext parentContext;
 
-  const EditQuizModal({Key? key, required this.onRefresh, required this.quiz})
-      : super(key: key);
+  const EditQuizModal(
+      {super.key,
+      required this.onRefresh,
+      required this.quiz,
+      required this.parentContext});
 
   @override
   State<EditQuizModal> createState() => _EditQuizModalState();
@@ -31,7 +34,6 @@ class _EditQuizModalState extends State<EditQuizModal> {
   late TextEditingController _descriptionController;
   late TextEditingController _timeController;
 
-
   @override
   void initState() {
     super.initState();
@@ -41,7 +43,7 @@ class _EditQuizModalState extends State<EditQuizModal> {
     _timeController = TextEditingController(text: widget.quiz.time.toString());
   }
 
-  void _updateQuiz(BuildContext context,List<TopicEntity> topics) {
+  void _updateQuiz(BuildContext context, List<TopicEntity> topics) {
     String quizName = _nameController.text;
     String quizDescription = _descriptionController.text;
     String quizTime = _timeController.text;
@@ -57,24 +59,27 @@ class _EditQuizModalState extends State<EditQuizModal> {
       );
       return;
     }
+    if (int.parse(quizTime) < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Atleast 10seconds'),
+      ));
+      return;
+    }
 
     context.read<ButtonStateCubit>().execute(
           usecase: EditQuizDetailUseCase(),
           params: EditQuizModel(
-              id: widget.quiz.id,
-              name: quizName,
-              description: quizDescription,
-              topicId: topics.map((e)=>e.toModel()).toList(),
-              questions: widget.quiz.questions.map((e)=>e.toModel()).toList(),
-              image: widget.quiz.image,
-              idCreator: widget.quiz.idCreator,
-              status: widget.quiz.status,
-              time: int.parse(quizTime),
-             ),
+            id: widget.quiz.id,
+            name: quizName,
+            description: quizDescription,
+            topicId: topics.map((e) => e.toModel()).toList(),
+            time: int.parse(quizTime),
+          ),
         );
   }
 
-  void _toggleTopic(BuildContext context,TopicEntity topic,List<TopicEntity> topics) {
+  void _toggleTopic(
+      BuildContext context, TopicEntity topic, List<TopicEntity> topics) {
     context.read<SelectTopicCubit>().onSelect(topic);
   }
 
@@ -96,27 +101,34 @@ class _EditQuizModalState extends State<EditQuizModal> {
             create: (BuildContext context) => ButtonStateCubit(),
           ),
           BlocProvider(
-            create: (BuildContext context) => SelectTopicCubit(widget.quiz.topicId),
+            create: (BuildContext context) =>
+                SelectTopicCubit(widget.quiz.topicId),
           ),
         ],
         child: BlocListener<ButtonStateCubit, ButtonState>(
           listener: (BuildContext context, state) {
             if (state is ButtonLoadingState) {
               ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: GetLoading()));
+                  .showSnackBar(const SnackBar(content: GetLoading()));
             }
             if (state is ButtonFailureState) {
               ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: GetFailure(name: state.errorMessage)));
             }
             if (state is ButtonSuccessState) {
+              List<TopicEntity> topicEntity =
+                  context.read<SelectTopicCubit>().state;
               ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: GetFailure(name: "success")));
-              widget.onRefresh();
+                  .showSnackBar(const SnackBar(content: GetFailure(name: "success")));
+              widget.parentContext.read<GetQuizDetailCubit>().onEditQuiz(
+                  _nameController.text,
+                  _descriptionController.text,
+                  topicEntity,
+                  int.parse(_timeController.text));
               Navigator.pop(context);
             }
           },
-          child: BlocBuilder<SelectTopicCubit,List<TopicEntity>>(
+          child: BlocBuilder<SelectTopicCubit, List<TopicEntity>>(
             builder: (BuildContext context, List<TopicEntity> topics) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,33 +172,33 @@ class _EditQuizModalState extends State<EditQuizModal> {
                   BlocBuilder<GetAllTopicCubit, GetAllTopicState>(
                     builder: (BuildContext context, GetAllTopicState state) {
                       if (state is GetAllTopicLoading) {
-                        return GetLoading();
+                        return const GetLoading();
                       }
                       if (state is GetAllTopicFailure) {
                         return GetFailure(name: state.error);
                       }
                       if (state is GetAllTopicSuccess) {
-                            return Wrap(
-                              spacing: 8.0,
-                              runSpacing: 4.0,
-                              children: state.topics.map((topic) {
-                                return FilterChip(
-                                  label: Text(topic.name),
-                                  selected: topics.any((e) => e.id == topic.id),
-                                  onSelected: (isSelected) {
-                                    _toggleTopic(context,topic,topics);
-                                  },
-                                  selectedColor: Colors.blueAccent.withOpacity(0.2),
-                                  backgroundColor: Colors.grey.shade200,
-                                );
-                              }).toList(),
+                        return Wrap(
+                          spacing: 8.0,
+                          runSpacing: 4.0,
+                          children: state.topics.map((topic) {
+                            return FilterChip(
+                              label: Text(topic.name),
+                              selected: topics.any((e) => e.id == topic.id),
+                              onSelected: (isSelected) {
+                                _toggleTopic(context, topic, topics);
+                              },
+                              selectedColor: Colors.blueAccent.withOpacity(0.2),
+                              backgroundColor: Colors.grey.shade200,
                             );
+                          }).toList(),
+                        );
                       }
-                      return GetSomethingWrong();
+                      return const GetSomethingWrong();
                     },
                   ),
                   const SizedBox(height: 16),
-                  const Text('Time (in minutes)'),
+                  const Text('Time (in seconds)'),
                   TextField(
                     controller: _timeController,
                     keyboardType: TextInputType.number,
@@ -201,7 +213,7 @@ class _EditQuizModalState extends State<EditQuizModal> {
                   Builder(
                     builder: (context) {
                       return ElevatedButton(
-                        onPressed: () => _updateQuiz(context,topics),
+                        onPressed: () => _updateQuiz(context, topics),
                         child: const Text('Update Quiz'),
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 48),

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:dartz/dartz.dart';
 import 'package:http/http.dart' as http;
+import 'package:quiz_app/core/constant/url.dart';
 import 'package:quiz_app/data/auth/models/login_payload.dart';
 import 'package:quiz_app/data/auth/models/register_payload.dart';
 import 'package:quiz_app/data/auth/models/token_get_model.dart';
@@ -16,7 +17,7 @@ class AuthServiceImp extends AuthService {
   @override
   Future<Either> login(LoginPayLoad user) async {
     try {
-      final uri = Uri.parse('http://localhost:5000/api/user/log-in');
+      final uri = Uri.parse('http://$url:5000/api/user/log-in');
       final response = await http.post(uri,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(user.toMap()));
@@ -34,7 +35,7 @@ class AuthServiceImp extends AuthService {
   @override
   Future<Either> register(RegisterPayload user) async {
     try {
-      final uri = Uri.parse('http://localhost:5000/api/user');
+      final uri = Uri.parse('http://$url:5000/api/user');
       final response = await http.post(uri,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(user.toMap()));

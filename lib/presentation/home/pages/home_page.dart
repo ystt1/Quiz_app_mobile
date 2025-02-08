@@ -95,7 +95,7 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return LibraryPage();
       case 3:
-        return const FriendPage();
+        return FriendsPage();
       case 4:
         return const HistoryPage();
       default:

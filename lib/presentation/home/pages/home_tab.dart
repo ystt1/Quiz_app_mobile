@@ -1,7 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quiz_app/presentation/home/bloc/get_new_quiz_cubit.dart';
+import 'package:quiz_app/common/bloc/quiz/get_list_quiz_cubit.dart';
+import 'package:quiz_app/common/bloc/quiz/get_list_quiz_state.dart';
+import 'package:quiz_app/common/bloc/user/get_user_detail_cubit.dart';
+import 'package:quiz_app/common/widgets/build_base_64_image.dart';
+import 'package:quiz_app/domain/quiz/usecase/get_newest_quiz_usecase.dart';
+import 'package:quiz_app/domain/quiz/usecase/get_recent_quiz_usecase.dart';
 import 'package:quiz_app/presentation/home/widgets/carousel_section.dart';
 import 'package:quiz_app/presentation/home/widgets/header.dart';
 import 'package:quiz_app/presentation/home/widgets/section_header.dart';
@@ -10,10 +15,6 @@ import '../../../common/widgets/get_loading.dart';
 import '../../../common/widgets/get_failure.dart';
 import '../../../common/widgets/get_something_wrong.dart';
 import '../../../domain/quiz/entity/basic_quiz_entity.dart';
-import '../bloc/get_new_quiz_state.dart';
-import '../bloc/get_recent_quiz_state.dart';
-import '../bloc/get_hot_quiz_cubit.dart';
-import '../bloc/get_recent_quiz_cubit.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -28,22 +29,16 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Header(),
-      ),
-      body: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-              create: (BuildContext context) => GetHotQuizCubit()..onGet()),
-          BlocProvider(
-              create: (BuildContext context) => GetRecentQuizCubit()..onGet()),
-          BlocProvider(
-              create: (BuildContext context) => GetNewQuizCubit()..onGet()),
-        ],
-        child: Padding(
+    return BlocProvider(
+      create: (BuildContext context) =>GetUserDetailCubit()..onGet("")
+,
+      child: Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.white,
+          title: const Header(),
+        ),
+        body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: SingleChildScrollView(
             child: Column(
@@ -66,116 +61,119 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-
-
   Widget _recentSection() {
-    return Column(
-      children: [
-        const SectionHeader(title: "Recent"),
-        BlocBuilder<GetRecentQuizCubit, GetRecentQuizState>(
-          builder: (BuildContext context, GetRecentQuizState state) {
-            if (state is GetRecentQuizLoading) {
-              return const GetLoading();
-            }
-            if (state is GetRecentQuizFailure) {
-              return  GetFailure(name: state.error);
-            }
-            if (state is GetRecentQuizSuccess) {
-              return Column(
-                children: [
-                  SizedBox(
-                    height: 90,
-                    child: ListView.separated(
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedRecentQuiz = index;
-                              });
-                            },
-                            child: _smallPictureQuiz(state.recentQuiz[index],_selectedRecentQuiz==index));
-                      },
-                      itemCount: state.recentQuiz.length,
-                      scrollDirection: Axis.horizontal,
-                      separatorBuilder: (BuildContext context, int index) {
-                        return const SizedBox(width: 10);
-                      },
+    return BlocProvider(
+      create: (BuildContext context) =>
+          GetListQuizCubit()..execute(usecase: GetRecentQuizUseCase()),
+      child: Column(
+        children: [
+          const SectionHeader(title: "Recent"),
+          BlocBuilder<GetListQuizCubit, GetListQuizState>(
+            builder: (BuildContext context, GetListQuizState state) {
+              if (state is GetListQuizLoading) {
+                return const GetLoading();
+              }
+              if (state is GetListQuizFailure) {
+                return GetFailure(name: state.error);
+              }
+              if (state is GetListQuizSuccess) {
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: 90,
+                      child: ListView.separated(
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedRecentQuiz = index;
+                                });
+                              },
+                              child: _smallPictureQuiz(state.quizzes[index],
+                                  _selectedRecentQuiz == index));
+                        },
+                        itemCount: state.quizzes.length,
+                        scrollDirection: Axis.horizontal,
+                        separatorBuilder: (BuildContext context, int index) {
+                          return const SizedBox(width: 10);
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  BigQuizCard(quiz: state.recentQuiz[_selectedRecentQuiz]),
-                ],
-              );
-            }
-            return const GetSomethingWrong();
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _newestSection() {
-    return Column(
-      children: [
-        const SectionHeader(title: "Newest"),
-        BlocBuilder<GetNewQuizCubit, GetNewQuizState>(
-          builder: (BuildContext context, GetNewQuizState state) {
-            if (state is GetNewQuizLoading) {
-              return const GetLoading();
-            }
-            if (state is GetNewQuizFailure) {
-              return GetFailure(name: state.error);
-            }
-
-            if (state is GetNewQuizSuccess) {
-              return Column(
-                children: [
-                  SizedBox(
-                    height: 90,
-                    child: ListView.separated(
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedNewQuiz = index;
-                              });
-                            },
-                                child:
-                                    _smallPictureQuiz(state.newQuiz[index],_selectedNewQuiz==index));
-                      },
-                        itemCount: state.newQuiz.length,
-                      scrollDirection: Axis.horizontal,
-                      separatorBuilder: (BuildContext context, int index) {
-                        return const SizedBox(width: 10);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  BigQuizCard(quiz: state.newQuiz[_selectedNewQuiz]),
-                ],
-              );
-            }
-            return const GetSomethingWrong();
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _smallPictureQuiz(BasicQuizEntity quiz,bool isSelected) {
-    return Container(
-      height: 80,
-      width: 70,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black,width:isSelected? 1:0.3),
-        borderRadius: BorderRadius.circular(12),
-        image: DecorationImage(
-          image: NetworkImage(quiz.image),
-          fit: BoxFit.cover,
-        ),
+                    const SizedBox(height: 20),
+                    BigQuizCard(quiz: state.quizzes[_selectedRecentQuiz]),
+                  ],
+                );
+              }
+              return const GetSomethingWrong();
+            },
+          ),
+        ],
       ),
     );
   }
 
+  Widget _newestSection() {
+    return BlocProvider(
+      create: (BuildContext context) =>
+          GetListQuizCubit()..execute(usecase: GetNewestQuizUseCase()),
+      child: Column(
+        children: [
+          const SectionHeader(title: "Newest"),
+          BlocBuilder<GetListQuizCubit, GetListQuizState>(
+            builder: (BuildContext context, GetListQuizState state) {
+              if (state is GetListQuizLoading) {
+                return const GetLoading();
+              }
+              if (state is GetListQuizFailure) {
+                return GetFailure(name: state.error);
+              }
+              if (state is GetListQuizSuccess) {
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: 90,
+                      child: ListView.separated(
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedNewQuiz = index;
+                                });
+                              },
+                              child: _smallPictureQuiz(state.quizzes[index],
+                                  _selectedNewQuiz == index));
+                        },
+                        itemCount: state.quizzes.length,
+                        scrollDirection: Axis.horizontal,
+                        separatorBuilder: (BuildContext context, int index) {
+                          return const SizedBox(width: 10);
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    BigQuizCard(quiz: state.quizzes[_selectedNewQuiz]),
+                  ],
+                );
+              }
+              return const GetSomethingWrong();
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _smallPictureQuiz(BasicQuizEntity quiz, bool isSelected) {
+    return Container(
+      height: 80,
+      width: 70,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black, width: isSelected ? 1 : 0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Base64ImageWidget(base64String:quiz.image ,)),
+    );
+  }
 }

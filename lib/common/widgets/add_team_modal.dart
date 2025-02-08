@@ -1,18 +1,20 @@
-import 'dart:io';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:quiz_app/common/bloc/button/button_state.dart';
 import 'package:quiz_app/common/bloc/button/button_state_cubit.dart';
-import 'package:quiz_app/common/helper/x_file_to_base64.dart';
+import 'package:quiz_app/common/widgets/build_base_64_image.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/data/team/model/team_payload_model.dart';
 import 'package:quiz_app/domain/team/usecase/add_team_usecase.dart';
 
+import '../helper/get_img_string.dart';
+
 class AddTeamModal extends StatefulWidget {
+  final VoidCallback onRefresh;
+
+  const AddTeamModal({super.key, required this.onRefresh});
   @override
   _AddTeamPageState createState() => _AddTeamPageState();
 }
@@ -21,7 +23,7 @@ class _AddTeamPageState extends State<AddTeamModal> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
   final TextEditingController _maxMembersController = TextEditingController();
-  XFile? _selectedImage;
+  String? _selectedImage;
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +38,7 @@ class _AddTeamPageState extends State<AddTeamModal> {
         create: (BuildContext context) =>ButtonStateCubit(),
         child: BlocListener<ButtonStateCubit,ButtonState>(
           listener: (BuildContext context, state) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
             if(state is ButtonLoadingState)
               {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: GetLoading()));
@@ -47,6 +50,8 @@ class _AddTeamPageState extends State<AddTeamModal> {
             if(state is ButtonSuccessState)
             {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Center(child: Text("success"),)));
+              widget.onRefresh.call();
+              Navigator.pop(context);
             }
           },
           child: Wrap(
@@ -84,16 +89,10 @@ class _AddTeamPageState extends State<AddTeamModal> {
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey),
                         borderRadius: BorderRadius.circular(8),
-                        image: _selectedImage != null
-                            ? DecorationImage(
-                          image: FileImage(File(_selectedImage!.path)),
-                          fit: BoxFit.cover,
-                        )
-                            : null,
                       ),
                       child: _selectedImage == null
                           ? const Center(child: Text('Select an Image'))
-                          : const SizedBox.shrink(),
+                          : Base64ImageWidget(base64String: _selectedImage,),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -136,16 +135,10 @@ class _AddTeamPageState extends State<AddTeamModal> {
   }
 
   void _selectImage() async {
-    var status = await Permission.storage.request();
-    if (!status.isGranted) {
-      print('Storage permission denied');
-      return;
-    }
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+    String? imageString = await getImgString();
+    if (imageString != null) {
       setState(() {
-        _selectedImage = image;
+        _selectedImage = imageString;
       });
     }
   }
@@ -180,6 +173,6 @@ class _AddTeamPageState extends State<AddTeamModal> {
       return;
     }
 
-    context.read<ButtonStateCubit>().execute(usecase: AddTeamUseCase(),params: TeamPayloadModel(name: name, image: "https://strategistsworld.com/wp-content/uploads/2021/01/img6.jpg", maxParticipant: maxMembersInt, code: code));
+    context.read<ButtonStateCubit>().execute(usecase: AddTeamUseCase(),params: TeamPayloadModel(name: name, image: _selectedImage??"https://emgotas.com/wp-content/uploads/2016/11/what-is-a-team.jpg?w=840", maxParticipant: maxMembersInt, code: code));
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:quiz_app/core/constant/url.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
@@ -92,7 +93,7 @@ class ApiService {
       headers: headers,
       body: jsonEncode(data),
     );
-  print(response.body);
+
     if (response.statusCode == 401) {
       final isRefreshed = await _refreshToken();
       if (isRefreshed) {
@@ -111,7 +112,7 @@ class ApiService {
 
     try {
       final response = await http.post(
-        Uri.parse('http:/localhost:5000/api/user/refresh-token'),
+        Uri.parse('http://$url:5000/api/user/refresh-token'),
         headers: {
           'Content-Type': 'application/json',
           'token': 'Bearer $refreshToken',

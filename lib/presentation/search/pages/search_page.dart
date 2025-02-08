@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quiz_app/common/bloc/button/button_state_cubit.dart';
+import 'package:quiz_app/common/bloc/quiz/get_list_quiz_cubit.dart';
+import 'package:quiz_app/common/bloc/quiz/get_list_quiz_state.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
 import 'package:quiz_app/domain/quiz/entity/topic_entity.dart';
+import 'package:quiz_app/domain/quiz/usecase/get_hot_quiz_usecase.dart';
 import 'package:quiz_app/presentation/library/bloc/get_all_topic_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/get_all_topic_state.dart';
 import 'package:quiz_app/presentation/library/widget/quiz_list.dart';
-import 'package:quiz_app/presentation/search/bloc/get_list_quiz_search_cubit.dart';
 import 'package:quiz_app/presentation/search/bloc/get_list_quiz_search_state.dart';
 
 class SearchPage extends StatefulWidget {
@@ -19,15 +22,20 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   bool isFilterExpanded = false;
   List<TopicEntity> selectedTopics = [];
-  RangeValues timeRange = const RangeValues(0, 60);
+  RangeValues timeRange = const RangeValues(0, 1800);
   RangeValues questionRange = const RangeValues(0, 100);
-  String sortBy = "Số lượng người tham gia";
-  List<String> topics = ["Math", "Science", "History"];
-  List<Map<String, dynamic>> quizzes = [];
-
-  void searchQuizzes() {
-    //context.read<GetListQuizSearchCubit>()
+  String sortBy = "CreatedAt";
+  void searchQuizzes(BuildContext context) {
+    late String params="";
+    params+=_searchController.text!=""?"name=${_searchController.text}&":"";
+    selectedTopics.forEach((e) => params += "topics=${e.id}&");
+    // params+=sortBy!=""?"sortField=$sortBy&":"";
+    params += "minTime=${timeRange.start.toInt()}&maxTime=${timeRange.end.toInt()}&";
+    params += "minQuestions=${questionRange.start.toInt()}&maxQuestions=${questionRange.end.toInt()}&";
+    context.read<GetListQuizCubit>().execute(usecase: GetHotQuizUseCase(),params:params);
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -39,16 +47,18 @@ class _SearchPageState extends State<SearchPage> {
         providers: [
           BlocProvider(
               create: (BuildContext context) =>
-                  GetListQuizSearchCubit()..onGet("")),
+                  GetListQuizCubit()..execute(usecase: GetHotQuizUseCase(),params: "")),
           BlocProvider(
               create: (BuildContext context) =>
               GetAllTopicCubit()..onGet()),
+          BlocProvider(
+              create: (BuildContext context) =>
+              ButtonStateCubit()),
         ],
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              // Bộ lọc và input
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 constraints: BoxConstraints(
@@ -88,7 +98,7 @@ class _SearchPageState extends State<SearchPage> {
                         child: TextField(
                           controller: _searchController,
                           decoration: const InputDecoration(
-                            labelText: "Nhập tên quiz",
+                            labelText: "Enter Quiz Name",
                             border: OutlineInputBorder(),
                           ),
                         ),
@@ -97,7 +107,7 @@ class _SearchPageState extends State<SearchPage> {
                       BlocBuilder<GetAllTopicCubit, GetAllTopicState>(
                         builder: (BuildContext context, GetAllTopicState state) {
                           if (state is GetAllTopicLoading) {
-                            return GetLoading();
+                            return const GetLoading();
                           }
                           if (state is GetAllTopicFailure) {
                             return GetFailure(name: state.error);
@@ -120,17 +130,17 @@ class _SearchPageState extends State<SearchPage> {
                               }).toList(),
                             );
                           }
-                          return GetSomethingWrong();
+                          return const GetSomethingWrong();
                         },
                       ),
                       // Lọc thời gian
                       ListTile(
-                        title: const Text("Thời gian làm quiz (phút)"),
+                        title: const Text("time (second)"),
                         subtitle: RangeSlider(
                           values: timeRange,
                           min: 0,
-                          max: 60,
-                          divisions: 3,
+                          max: 1800,
+                          divisions: 30,
                           labels: RangeLabels(
                             "${timeRange.start.toInt()}",
                             "${timeRange.end.toInt()}",
@@ -144,7 +154,7 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                       // Lọc số lượng câu hỏi
                       ListTile(
-                        title: const Text("Số lượng câu hỏi"),
+                        title: const Text("Question Number"),
                         subtitle: RangeSlider(
                           values: questionRange,
                           min: 0,
@@ -163,12 +173,12 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                       // Sắp xếp
                       ListTile(
-                        title: const Text("Sắp xếp theo"),
+                        title: const Text("SortBy"),
                         trailing: DropdownButton<String>(
                           value: sortBy,
                           items: [
-                            "Số lượng người tham gia",
-                            "Ngày tạo",
+                            "CreatedAt",
+                            "Participants",
                           ].map((option) {
                             return DropdownMenuItem(
                               value: option,
@@ -182,10 +192,13 @@ class _SearchPageState extends State<SearchPage> {
                           },
                         ),
                       ),
-                      // Nút tìm kiếm
-                      ElevatedButton(
-                        onPressed: searchQuizzes,
-                        child: const Text("Tìm kiếm"),
+                      Builder(
+                        builder: (context) {
+                          return ElevatedButton(
+                            onPressed: ()=>searchQuizzes(context),
+                            child: const Text("Search"),
+                          );
+                        }
                       ),
                     ],
                   ],
@@ -194,25 +207,25 @@ class _SearchPageState extends State<SearchPage> {
 
               Expanded(
                 child:
-                    BlocBuilder<GetListQuizSearchCubit, GetListQuizSearchState>(
+                    BlocBuilder<GetListQuizCubit, GetListQuizState>(
                   builder:
-                      (BuildContext context, GetListQuizSearchState state) {
-                    if (state is GetListQuizSearchLoading) {
+                      (BuildContext context, GetListQuizState state) {
+                    if (state is GetListQuizLoading) {
                       return const GetLoading();
                     }
-                    if (state is GetListQuizSearchFailure) {
+                    if (state is GetListQuizFailure) {
                       return GetFailure(name: state.error);
                     }
-                    if (state is GetListQuizSearchSuccess) {
-                      if (state.listQuiz.isEmpty) {
+                    if (state is GetListQuizSuccess) {
+                      if (state.quizzes.isEmpty) {
                         return const GetFailure(name: "Not Found");
                       }
                       return QuizList(
-                        quizList: state.listQuiz,
+                        quizList: state.quizzes,
                         isYour: false,
                       );
                     }
-                    return const GetSomethingWrong();
+                    return const Center(child: Text("didn't search"),);
                   },
                 ),
               ),

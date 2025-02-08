@@ -1,82 +1,85 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quiz_app/common/bloc/quiz/quiz_selector_cubit.dart';
 import 'package:quiz_app/common/widgets/quiz_card.dart';
-import 'package:quiz_app/data/quiz/models/quiz_model.dart';
 import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
-import 'package:quiz_app/domain/quiz/entity/quiz_entity.dart';
-
+import 'package:quiz_app/presentation/quiz/pages/practice_quiz_detail_page.dart';
 import '../pages/quiz_detail_page.dart';
 
-class QuizList extends StatefulWidget {
+class QuizList extends StatelessWidget {
   final List<BasicQuizEntity> quizList;
   final bool isYour;
   final VoidCallback? onRefresh;
-  const QuizList({super.key, required this.quizList, required this.isYour,this.onRefresh});
+  final bool canChoose;
+  final String type;
+  final String teamId;
+  const QuizList(
+      {super.key,
+      required this.quizList,
+      required this.isYour,
+      this.onRefresh,
+      this.canChoose = false,
+      this.type="null" , this.teamId=""});
 
-  @override
-  State<QuizList> createState() => _QuizListState();
-}
-
-class _QuizListState extends State<QuizList> {
   @override
   Widget build(BuildContext context) {
-    List<BasicQuizEntity> _selectedQuiz = [];
-    bool _isSelectedMode = false;
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => QuizSelectorCubit(),
+        ),
+      ],
+      child: BlocBuilder<QuizSelectorCubit, List<BasicQuizEntity>>(
+        builder: (context, selectedQuiz) {
+          final isSelectedMode = selectedQuiz.isNotEmpty;
+          return ListView.separated(
+            itemCount: quizList.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, index) {
+              final quiz = quizList[index];
+              final isSelected = selectedQuiz.contains(quiz);
 
-    return ListView.separated(
-      itemCount: widget.quizList.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        return GestureDetector(
-          onLongPress: () {
-            if (widget.isYour) {
-              setState(() {
-                _isSelectedMode = true;
-                _selectedQuiz.add(widget.quizList[index]);
-              });
-            }
-            print(_isSelectedMode);
-
-            print(_selectedQuiz);
-          },
-          onTap: () {
-            print(_isSelectedMode);
-
-            print(_selectedQuiz);
-            if (_isSelectedMode) {
-              if (_selectedQuiz.contains(widget.quizList[index])) {
-                setState(() {
-                  _selectedQuiz.remove(widget.quizList[index]);
-                });
-              } else {
-                setState(() {
-                  _selectedQuiz.add(widget.quizList[index]);
-                });
-              }
-              if(_selectedQuiz.isEmpty)
-                {
-                  setState(() {
-                    _isSelectedMode=false;
-                  });
-                }
-            }
-          },
-          child: QuizCard(
-            onClick: () {
-
-              if(!_isSelectedMode) {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) =>
-                      QuizDetailPage(quiz: widget.quizList[index], onRefresh: widget.onRefresh!),
-                ));
-              }
+              return GestureDetector(
+                onLongPress: () {
+                  if (canChoose) {
+                    context.read<QuizSelectorCubit>().onSelect(quiz);
+                  }
+                },
+                child: QuizCard(
+                  onClick: () {
+                    if (canChoose && isSelectedMode) {
+                      context.read<QuizSelectorCubit>().onSelect(quiz);
+                      return;
+                    }
+                    if (isYour) {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => QuizDetailPage(
+                          quiz: quiz,
+                          parentContext: context,
+                          //onRefresh: onRefresh,
+                        ),
+                      ));
+                    }
+                    if (!isYour) {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => PracticeQuizDetailPage(
+                          quizId: quiz.id,
+                        ),
+                      ));
+                    }
+                  },
+                  isYour: isYour,
+                  quiz: quiz,
+                  isSelected: isSelected,
+                  isSelectedMode: isSelectedMode,
+                  type: type,
+                  idTeam: teamId,
+                ),
+              );
             },
-            isYour: widget.isYour,
-            quiz: widget.quizList[index],
-            isSelected: _selectedQuiz.contains(widget.quizList[index]),
-            isSelectedMode: _isSelectedMode,
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

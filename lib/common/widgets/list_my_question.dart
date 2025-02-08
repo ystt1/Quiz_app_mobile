@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +9,7 @@ import 'package:quiz_app/data/quiz/models/quiz_quetion_payload.dart';
 import 'package:quiz_app/domain/question/entity/basic_question_entity.dart';
 import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
 import 'package:quiz_app/domain/quiz/usecase/add_question_to_quiz_usecase.dart';
+import 'package:quiz_app/presentation/library/bloc/get_quiz_detail_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/select_question_cubit.dart';
 
 import '../../presentation/library/bloc/get_my_question_cubit.dart';
@@ -22,7 +21,13 @@ import 'get_something_wrong.dart';
 class ListMyQuestion extends StatefulWidget {
   final BasicQuizEntity quiz;
   final VoidCallback? onRefresh;
-  const ListMyQuestion({super.key, required this.quiz, this.onRefresh});
+  final BuildContext parentContext;
+
+  const ListMyQuestion(
+      {super.key,
+      required this.quiz,
+      this.onRefresh,
+      required this.parentContext});
 
   @override
   State<ListMyQuestion> createState() => _ListMyQuestionState();
@@ -34,7 +39,9 @@ class _ListMyQuestionState extends State<ListMyQuestion> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-            create: (BuildContext context) => GetMyQuestionCubit()..onGet(SearchAndSortModel(name: '', sortField: '', direction: ''))),
+            create: (BuildContext context) => GetMyQuestionCubit()
+              ..onGet(
+                  SearchAndSortModel(name: '', sortField: '', direction: ''))),
         BlocProvider(create: (BuildContext context) => SelectQuestionCubit()),
         BlocProvider(create: (BuildContext context) => ButtonStateCubit()),
       ],
@@ -47,6 +54,9 @@ class _ListMyQuestionState extends State<ListMyQuestion> {
           return GetFailure(name: state.error);
         }
         if (state is GetMyQuestionSuccess) {
+          List<BasicQuestionEntity> questionList = state.questions;
+          questionList.removeWhere(
+              (e) => widget.quiz.questions.any((ques) => ques.id == e.id));
           return BlocListener<ButtonStateCubit, ButtonState>(
             listener: (BuildContext context, ButtonState buttonState) {
               if (buttonState is ButtonLoadingState) {
@@ -54,12 +64,19 @@ class _ListMyQuestionState extends State<ListMyQuestion> {
                     .showSnackBar(const SnackBar(content: GetLoading()));
               }
               if (buttonState is ButtonSuccessState) {
+                List<BasicQuestionEntity> questionsAdd = questionList
+                    .where((e) =>
+                        context.read<SelectQuestionCubit>().state.contains(e.id))
+                    .toList();
+
+                widget.parentContext
+                    .read<GetQuizDetailCubit>()
+                    .onAddListQuiz(questionsAdd);
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Center(
                   child: Text("success"),
                 )));
                 context.read<SelectQuestionCubit>().onClear();
-                widget.onRefresh?.call();
                 Navigator.of(context).pop();
               }
               if (buttonState is ButtonFailureState) {
@@ -69,8 +86,6 @@ class _ListMyQuestionState extends State<ListMyQuestion> {
             },
             child: BlocBuilder<SelectQuestionCubit, List<String>>(
               builder: (BuildContext context, List<String> state2) {
-                List<BasicQuestionEntity> questionList = state.questions;
-                questionList.removeWhere((e) => widget.quiz.questions.any((ques) => ques.id == e.id));
                 return _screen(context, questionList, state2);
               },
             ),
@@ -83,7 +98,6 @@ class _ListMyQuestionState extends State<ListMyQuestion> {
 
   Widget _screen(BuildContext context, List<BasicQuestionEntity> questions,
       List<String> selectedQuestion) {
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -121,7 +135,6 @@ class _ListMyQuestionState extends State<ListMyQuestion> {
       ),
       body: ListView.builder(
         itemBuilder: (context, index) {
-
           return GestureDetector(
             onTap: () {
               final questionId = questions[index].id;

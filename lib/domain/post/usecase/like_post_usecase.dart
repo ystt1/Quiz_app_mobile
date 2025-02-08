@@ -1,11 +1,12 @@
 import 'package:dartz/dartz.dart';
 import 'package:quiz_app/core/usecase.dart';
+import 'package:quiz_app/domain/post/repository/post_repository.dart';
+import 'package:quiz_app/service_locator.dart';
 
-class LikePostUseCase implements UseCase<Either,dynamic> {
+class LikePostUseCase implements UseCase<Either,String> {
   @override
-  Future<Either> call({params}) {
-    // TODO: implement call
-    throw UnimplementedError();
+  Future<Either> call({String? params}) async {
+   return await sl<PostRepository>().likePost(params!);
   }
 
 }

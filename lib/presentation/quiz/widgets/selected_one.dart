@@ -32,8 +32,9 @@ class SelectedOne extends StatelessWidget {
                   userAnswers: updatedUserAnswers,
                   status: result.status,
                   completeTime: result.completeTime,
-                    quizId: result.quizId
+                    quizId: result.quizId, questions: result.questions
                 );
+
                 onChange(updatedResult);
               },
             ),

@@ -7,8 +7,8 @@ class GetQuizDetailLoading extends GetQuizDetailState{}
 
 class GetQuizDetailSuccess extends GetQuizDetailState{
   final BasicQuizEntity quiz;
-
-  GetQuizDetailSuccess({required this.quiz});
+  String? flag;
+  GetQuizDetailSuccess({required this.quiz,required this.flag});
 
 }
 

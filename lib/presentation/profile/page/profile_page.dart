@@ -1,7 +1,22 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:quiz_app/common/bloc/button/button_state.dart';
+import 'package:quiz_app/common/bloc/button/button_state_cubit.dart';
+import 'package:quiz_app/common/bloc/profile/get_profile_cubit.dart';
+import 'package:quiz_app/common/bloc/profile/get_profile_state.dart';
+import 'package:quiz_app/common/bloc/token_cubit.dart';
+import 'package:quiz_app/common/helper/app_helper.dart';
+import 'package:quiz_app/common/widgets/get_failure.dart';
+import 'package:quiz_app/common/widgets/get_loading.dart';
+import 'package:quiz_app/common/widgets/get_something_wrong.dart';
+import 'package:quiz_app/data/user/model/change_profile_payload_model.dart';
+import 'package:quiz_app/domain/user/usecase/change_profile_usecase.dart';
+import 'package:quiz_app/domain/user/usecase/get_user_detail_usecase.dart';
+
+import '../../../common/helper/get_img_string.dart';
+import '../../../common/widgets/profile_avatar.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -9,57 +24,144 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  File? _avatar;
-  final picker = ImagePicker();
-
-  Future<void> _pickImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _avatar = File(pickedFile.path);
-      });
+  Future<void> _pickImage(BuildContext context) async {
+    String? newBase64 = await getImgString();
+    if (newBase64 != null) {
+      context.read<GetProfileCubit>().onChangeAvatar(newBase64);
     }
   }
 
-  void _showChangePasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return ChangePasswordDialog();
-      },
-    );
+  void _saveAvatar(BuildContext context, String flag) {
+    context.read<ButtonStateCubit>().execute(
+        usecase: ChangeProfileUseCase(),
+        params: ChangeProfilePayLoadModel(
+            avatar: flag, oldPassword: null, password: null));
+  }
+
+  void _cancelAvatarChange(BuildContext context) {
+    context.read<GetProfileCubit>().cancelAvatarChange();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Profile")),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: _pickImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: _avatar != null ? FileImage(_avatar!) : null,
-                child: _avatar == null ? Icon(Icons.camera_alt, size: 40) : null,
-              ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+            create: (_) => GetProfileCubit()
+              ..onGet(useCase: GetUserDetailUseCase(), params: '')),
+        BlocProvider(create: (_) => ButtonStateCubit())
+      ],
+      child: BlocListener<ButtonStateCubit,ButtonState>(
+        listener: (BuildContext context, btnState) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          print(btnState);
+          if(btnState is ButtonLoadingState)
+            {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: GetLoading()));
+            }
+          if(btnState is ButtonFailureState)
+          {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GetFailure(name: btnState.errorMessage)));
+          }
+          if(btnState is ButtonSuccessState)
+          {
+           context.read<GetProfileCubit>().onChangeAvatarSuccess();
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(title: const Text("Profile")),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: BlocBuilder<GetProfileCubit, GetProfileState>(
+              builder: (BuildContext context, GetProfileState state) {
+                if (state is GetProfileLoading) return const GetLoading();
+                if (state is GetProfileFailure)
+                  return GetFailure(name: state.error);
+                if (state is GetProfileSuccess) {
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          _pickImage(context);
+                        },
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            profileAvatar(state.flagAvatar),
+                            const Positioned(
+                              top: 20,
+                              right: 20,
+                              child: Icon(Icons.camera_alt,
+                                  color: Colors.white70, size: 30),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      state.user.avatar != state.flagAvatar
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 100,
+                                  child: Builder(
+                                    builder: (context) {
+                                      return ElevatedButton(
+                                        onPressed: () {
+                                          _saveAvatar(context, state.flagAvatar);
+                                        },
+                                        child: const Text("Save"),
+                                      );
+                                    }
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                OutlinedButton(
+                                  onPressed: () => _cancelAvatarChange(context),
+                                  child: const Text("Cancel"),
+                                ),
+                              ],
+                            )
+                          : const SizedBox(),
+                      const SizedBox(height: 10),
+                      Text(state.user.email,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 20),
+                      QrImageView(data: state.user.id, size: 150),
+                      ProfileStat(title: "Friends", value: state.user.friendCount.toString()),
+                      ProfileStat(title: "Points", value: state.user.totalScore.toString()),
+                      ProfileStat(title: "Quizzes", value: state.user.quizCount.toString()),
+                      ProfileStat(title: "Questions", value: state.user.questionCount.toString()),
+                      ProfileStat(
+                          title: "Date join",
+                          value: AppHelper.dateFormat(state.user.createdAt)),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {},
+                        child: const Text("Change Password"),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () => context.read<TokenCubit>().logout(),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.logout),
+                            SizedBox(width: 5),
+                            Text("Log out")
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return const GetSomethingWrong();
+              },
             ),
-            SizedBox(height: 10),
-            Text("user@gmail.com", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
-            ProfileStat(title: "Friends", value: "120"),
-            ProfileStat(title: "Points", value: "2500"),
-            ProfileStat(title: "Quizzes", value: "15"),
-            ProfileStat(title: "Questions", value: "300"),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _showChangePasswordDialog,
-              child: Text("Change Password"),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -79,58 +181,12 @@ class ProfileStat extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: TextStyle(fontSize: 16)),
-          Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(title, style: const TextStyle(fontSize: 16)),
+          Text(value,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ],
       ),
-    );
-  }
-}
-
-class ChangePasswordDialog extends StatelessWidget {
-  final TextEditingController oldPasswordController = TextEditingController();
-  final TextEditingController newPasswordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text("Change Password"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: oldPasswordController,
-            decoration: InputDecoration(labelText: "Old Password"),
-            obscureText: true,
-          ),
-          TextField(
-            controller: newPasswordController,
-            decoration: InputDecoration(labelText: "New Password"),
-            obscureText: true,
-          ),
-          TextField(
-            controller: confirmPasswordController,
-            decoration: InputDecoration(labelText: "Confirm New Password"),
-            obscureText: true,
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text("Cancel"),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (newPasswordController.text == confirmPasswordController.text) {
-              // Handle password change logic
-              Navigator.pop(context);
-            }
-          },
-          child: Text("Confirm"),
-        ),
-      ],
     );
   }
 }

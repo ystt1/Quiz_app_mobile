@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quiz_app/common/bloc/button/button_state.dart';
-import 'package:quiz_app/common/bloc/button/button_state_cubit.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
 import 'package:quiz_app/data/quiz/models/practice_payload.dart';
 import 'package:quiz_app/domain/question/entity/basic_question_entity.dart';
 import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
-import 'package:quiz_app/domain/quiz/usecase/submit_result_usecase.dart';
 import 'package:quiz_app/presentation/quiz/bloc/change_result_cubit.dart';
 import 'package:quiz_app/presentation/quiz/bloc/get_practice_cubit.dart';
 import 'package:quiz_app/presentation/quiz/bloc/get_pratice_state.dart';
 import 'package:quiz_app/presentation/quiz/bloc/submit_cubit.dart';
 import 'package:quiz_app/presentation/quiz/bloc/submit_state.dart';
+import 'package:quiz_app/presentation/history/pages/result_page.dart';
 import 'package:quiz_app/presentation/quiz/widgets/constructed.dart';
 import 'package:quiz_app/presentation/quiz/widgets/drag_and_drop.dart';
 import 'package:quiz_app/presentation/quiz/widgets/fill_in_the_blank.dart';
@@ -37,6 +35,16 @@ class _PracticePageState extends State<PracticePage> {
   void onChangedResult(BuildContext context, state) {
     context.read<ChangeResultCubit>().updateAnswer(state);
   }
+  List<List<String>> initializeUserAnswers(List<BasicQuestionEntity> questions) {
+    return questions.map((question) {
+      if (question.type == "drag-and-drop") {
+        int blanksCount = question.content.split('___').length - 1;
+        return List.generate(blanksCount, (_) => "");
+      }
+      return [""];
+    }).toList();
+  }
+
 
   Future<bool> onExitAttempt(
       BuildContext oldcontext, PracticePayloadModel result) async {
@@ -46,7 +54,7 @@ class _PracticePageState extends State<PracticePage> {
         return AlertDialog(
           title: const Text("Confirm Exit"),
           content: const Text(
-              "Are you sure you want to exit? Your answers will be submitted as pending."),
+              "Are you sure you want to exit? Your answers will not save."),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -54,7 +62,7 @@ class _PracticePageState extends State<PracticePage> {
             ),
             TextButton(
               onPressed: () {
-                submitAnswers(result, "pending", oldcontext);
+                // submitAnswers(result, "pending", oldcontext);
                 Navigator.of(context).pop(true);
               },
               child: const Text("Exit"),
@@ -72,11 +80,12 @@ class _PracticePageState extends State<PracticePage> {
     final elapsedTime = context.read<WorkoutCubit>().state is WorkoutInProgress
         ? (context.read<WorkoutCubit>().state as WorkoutInProgress).elapsed!
         : 0;
+
     final flag = PracticePayloadModel(
         userAnswers: result.userAnswers,
         status: status,
         completeTime: widget.quiz.time - elapsedTime,
-        quizId: result.quizId);
+        quizId: result.quizId, questions: result.questions);
     context
         .read<SubmitCubit>().onSubmit(flag);
   }
@@ -109,8 +118,13 @@ class _PracticePageState extends State<PracticePage> {
           }
           if(buttonState is SubmitSuccess)
           {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Center(child: Text("success"),)));
-            print(buttonState.result);
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ResultPage(result: buttonState.result,),
+              ),
+            );
           }
 
         },
@@ -125,10 +139,12 @@ class _PracticePageState extends State<PracticePage> {
             if (state is GetPracticeQuestionSuccess) {
               BlocProvider.of<WorkoutCubit>(context)
                   .startWorkout(widget.quiz.time);
+              List<String> ques=state.questions.map((e)=>e.id).toList();
               return BlocProvider(
                 create: (BuildContext context) => ChangeResultCubit(
                   PracticePayloadModel(
-                    userAnswers: List.generate(state.questions.length, (_) => []),
+                    questions: ques,
+                    userAnswers: initializeUserAnswers(state.questions),
                     status: "pending",
                     completeTime: widget.quiz.time,
                     quizId: widget.quiz.id,
@@ -147,7 +163,7 @@ class _PracticePageState extends State<PracticePage> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: BlocBuilder<WorkoutCubit, WorkoutState>(
+                              child: BlocConsumer<WorkoutCubit, WorkoutState>(
                                 builder:
                                     (BuildContext context, WorkoutState time) {
                                   if (time is WorkoutInProgress) {
@@ -159,7 +175,12 @@ class _PracticePageState extends State<PracticePage> {
                                     );
                                   }
                                   return Container();
-                                },
+                                }, listener: (context, state) {
+                                if (state is WorkoutFinish) {
+                                  final result = context.read<ChangeResultCubit>().state;
+                                  submitAnswers(result, "done", context);
+                                }
+                              },
                               ),
                             ),
                             Expanded(

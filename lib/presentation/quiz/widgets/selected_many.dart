@@ -36,11 +36,10 @@ class SelectedMany extends StatelessWidget {
                 }
 
                 var updatedResult = PracticePayloadModel(
-
                   userAnswers: updatedUserAnswers,
                   status: result.status,
                   completeTime: result.completeTime,
-                    quizId: result.quizId
+                    quizId: result.quizId, questions: result.questions
                 );
 
                 onChange(updatedResult);

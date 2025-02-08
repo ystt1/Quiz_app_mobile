@@ -7,6 +7,7 @@ import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/data/question/models/edit_question_payload_model.dart';
 import 'package:quiz_app/domain/question/entity/basic_answer_entity.dart';
 import 'package:quiz_app/domain/question/entity/basic_question_entity.dart';
+import 'package:quiz_app/presentation/library/bloc/get_my_question_cubit.dart';
 import '../../../data/question/models/basic_answer_model.dart';
 import '../../../domain/question/usecase/edit_question_usecase.dart';
 
@@ -14,14 +15,15 @@ import '../../../domain/question/usecase/edit_question_usecase.dart';
 class EditQuestionModal extends StatefulWidget {
   final BasicQuestionEntity question;
   final VoidCallback onRefresh;
-
-  const EditQuestionModal({super.key, required this.question, required this.onRefresh});
+  final BuildContext parenContext;
+  const EditQuestionModal({super.key, required this.question, required this.onRefresh, required this.parenContext});
 
   @override
   State<EditQuestionModal> createState() => _EditQuestionModalState();
 }
 
 class _EditQuestionModalState extends State<EditQuestionModal> {
+  late TextEditingController contentController;
   late String selectedType;
   late double score;
   late String content;
@@ -29,17 +31,23 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
   late int? selectedSingleChoiceIndex;
   late List<int> selectedMultiChoiceIndices;
   late String shortAnswerCorrect;
-
+  EditQuestionPayloadModel? editQuestionPayloadModel;
   bool isEdited = false;
   bool isEditing = false;
 
+  late List<TextEditingController> answerControllers;
+  late TextEditingController shortAnswerController;
   @override
   void initState() {
     super.initState();
+
+
+    content = widget.question.content.isNotEmpty ? widget.question.content:"";
+
+    answers = widget.question.answers.map((e) => e.content).toList();
     selectedType = widget.question.type;
     score = widget.question.score.toDouble();
-    content = widget.question.content.replaceAll('___', '{}');
-    answers = widget.question.answers.map((e) => e.content).toList();
+    contentController = TextEditingController(text: content);
     selectedSingleChoiceIndex = widget.question.answers.indexWhere((e) => e.isCorrect);
     selectedMultiChoiceIndices = widget.question.answers
         .asMap()
@@ -47,37 +55,134 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
         .where((entry) => entry.value.isCorrect)
         .map((entry) => entry.key)
         .toList();
+
     shortAnswerCorrect = widget.question.answers.isNotEmpty ? widget.question.answers.first.content : '';
+    shortAnswerController = TextEditingController(text: widget.question.answers.isNotEmpty
+        ? widget.question.answers.first.content
+        : '');
+    answerControllers = widget.question.answers
+        .map((e) => TextEditingController(text: e.content))
+        .toList();
   }
 
+
+
+  void enterEditMode() {
+    if (selectedType == 'drag-and-drop' ||
+        selectedType == 'fill-in-the-blank') {
+      String updatedContent = content;
+      for (int i = 0; i < answers.length; i++) {
+        updatedContent = updatedContent.replaceFirst('___', '{${answers[i]}}');
+      }
+
+      contentController = TextEditingController(text: updatedContent);
+      setState(() {
+        isEditing = true;
+        content = updatedContent;
+      });
+    } else {
+      setState(() {
+        isEditing = true;
+      });
+    }
+  }
+
+
+
   void onSave(BuildContext context) {
-    final updatedAnswers = answers.map((answer) {
+
+    if (contentController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Question content cannot be empty")),
+      );
+      return;
+    }
+
+
+    List<String> extractedAnswers = [];
+    String updatedContent = contentController.text;
+
+    if (selectedType == 'drag-and-drop' || selectedType == 'fill-in-the-blank') {
+      final regex = RegExp(r'\{(.*?)\}');
+      final matches = regex.allMatches(contentController.text);
+
+      extractedAnswers = matches.map((match) => match.group(1) ?? "").toList();
+
+      if (extractedAnswers.any((answer) => answer.trim().isEmpty)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Each {} must contain a valid answer")),
+        );
+        return;
+      }
+
+      updatedContent = contentController.text.replaceAll(regex, '___');
+    }
+
+
+    if ((selectedType == 'drag-and-drop' || selectedType == 'fill-in-the-blank') && extractedAnswers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Fill-in-the-blank and drag-and-drop must have answers inside {}")),
+      );
+      return;
+    }
+
+
+    if (answerControllers.any((controller) => controller.text.trim().isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Answers cannot be empty")),
+      );
+      return;
+    }
+
+
+    if (selectedType == 'selected-one' && selectedSingleChoiceIndex == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select at least one correct answer for 'selected-one' type")),
+      );
+      return;
+    }
+
+
+    if (selectedType == 'selected-many' && selectedMultiChoiceIndices.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select at least two correct answers for 'selected-many' type")),
+      );
+      return;
+    }
+
+
+    final updatedAnswers = (selectedType == 'drag-and-drop' || selectedType == 'fill-in-the-blank')
+        ? extractedAnswers.map((answerText) => BasicAnswerModel(content: answerText, isCorrect: true)).toList()
+        : answerControllers.map((controller) {
+      String answerText = controller.text;
       bool isCorrect = false;
 
       if (selectedType == 'selected-one') {
-        isCorrect = answers.indexOf(answer) == selectedSingleChoiceIndex;
+        isCorrect = answerControllers.indexOf(controller) == selectedSingleChoiceIndex;
       } else if (selectedType == 'selected-many') {
-        isCorrect = selectedMultiChoiceIndices.contains(answers.indexOf(answer));
-      } else if (selectedType == 'fill-in-the-blank' || selectedType == 'drag-and-drop') {
-        isCorrect = true;
+        isCorrect = selectedMultiChoiceIndices.contains(answerControllers.indexOf(controller));
       } else if (selectedType == 'constructed') {
-        answer = shortAnswerCorrect;
+        answerText = shortAnswerController.text;
         isCorrect = true;
       }
 
-      return BasicAnswerModel(content: answer, isCorrect: isCorrect);
+      return BasicAnswerModel(content: answerText, isCorrect: isCorrect);
     }).toList();
 
     final updatedQuestion = EditQuestionPayloadModel(
-      content: content.replaceAll('{}', '___'),
+      content: updatedContent,
       score: score.toInt(),
       type: selectedType,
-      answers: updatedAnswers, id: widget.question.id,
+      answers: updatedAnswers,
+      id: widget.question.id,
     );
-
-
-    context.read<ButtonStateCubit>().execute(usecase: EditQuestionUseCase(), params: updatedQuestion);
+    editQuestionPayloadModel=updatedQuestion;
+     context.read<ButtonStateCubit>().execute(
+         usecase: EditQuestionUseCase(), params: updatedQuestion);
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +190,10 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
       create: (BuildContext context) => ButtonStateCubit(),
       child: Padding(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+          bottom: MediaQuery
+              .of(context)
+              .viewInsets
+              .bottom,
           top: 16,
           left: 16,
           right: 16,
@@ -96,19 +204,24 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
               listener: (BuildContext context, state) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 if (state is ButtonLoadingState) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: GetLoading()));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: GetLoading()));
                 }
                 if (state is ButtonFailureState) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GetFailure(name: state.errorMessage)));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: GetFailure(name: state.errorMessage)));
                 }
                 if (state is ButtonSuccessState) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Center(child: Text("Success"))));
-                  widget.onRefresh();
+                  ScaffoldMessenger.of(context).showSnackBar(
+
+                      const SnackBar(content: Center(child: Text("Success"))));
+                  widget.parenContext.read<GetMyQuestionCubit>().onUpdate(editQuestionPayloadModel);
                   Navigator.of(context).pop();
                 }
               },
               child: SingleChildScrollView(
-                child: isEditing ? _buildEditView(context) : _buildDetailView(context),
+                child: isEditing ? _buildEditView(context) : _buildDetailView(
+                    context),
               ),
             );
           },
@@ -136,9 +249,7 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {
-                setState(() {
-                  isEditing=true;
-                });
+                enterEditMode();
               },
             )
           ],
@@ -207,28 +318,19 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
                 _buildTextField(
                   label: 'Question Content',
                   hint: 'Enter your question here...',
-                  value: content,
-                  onChanged: (value) {
-                    setState(() {
-                      content = value;
-                      isEdited = true;
-                    });
-                  },
+                  controller: contentController,
                 ),
+
                 const SizedBox(height: 16),
                 if (selectedType == 'constructed')
                   _buildTextField(
                     label: 'Correct Answer',
                     hint: 'Enter the correct answer...',
-                    value: shortAnswerCorrect,
-                    onChanged: (value) {
-                      setState(() {
-                        shortAnswerCorrect = value;
-                        isEdited = true;
-                      });
-                    },
+                    controller: shortAnswerController,
                   ),
-                if (selectedType == 'selected-one' || selectedType == 'selected-many')
+
+                if (selectedType == 'selected-one' ||
+                    selectedType == 'selected-many')
                   _buildAnswersSection(),
               ],
             ),
@@ -291,7 +393,6 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
   }
 
 
-
   Widget _buildSlider({
     required String label,
     required double value,
@@ -316,16 +417,20 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
   Widget _buildTextField({
     required String label,
     required String hint,
-    required String value,
-    required ValueChanged<String> onChanged,
+    required TextEditingController controller,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label),
         TextField(
-          controller: TextEditingController(text: value),
-          onChanged: onChanged,
+          controller: controller,
+          onChanged: (value) {
+            setState(() {
+              isEdited = true;
+            });
+
+          },
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(
@@ -337,25 +442,28 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
     );
   }
 
+
   Widget _buildAnswersSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Answers'),
         Column(
-          children: answers.asMap().entries.map((entry) {
+          children: answerControllers
+              .asMap()
+              .entries
+              .map((entry) {
             int index = entry.key;
-            String answer = entry.value;
+            TextEditingController controller = entry.value;
+
             return Row(
               children: [
                 Expanded(
                   child: TextField(
-                    controller: TextEditingController(text: answer),
+                    controller: controller,
                     onChanged: (value) {
-                      setState(() {
-                        answers[index] = value;
-                        isEdited = true;
-                      });
+                      isEdited =
+                      true;
                     },
                     decoration: InputDecoration(
                       hintText: 'Answer ${index + 1}',
@@ -370,7 +478,7 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
                     value: index,
                     groupValue: selectedSingleChoiceIndex,
                     onChanged: (int? value) {
-                      setState(() {
+                      setState((  ) {
                         selectedSingleChoiceIndex = value;
                         isEdited = true;
                       });
@@ -394,7 +502,7 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
                   icon: const Icon(Icons.remove_circle),
                   onPressed: () {
                     setState(() {
-                      answers.removeAt(index);
+                      answerControllers.removeAt(index);
                       if (selectedSingleChoiceIndex == index) {
                         selectedSingleChoiceIndex = null;
                       }
@@ -410,7 +518,8 @@ class _EditQuestionModalState extends State<EditQuestionModal> {
         ElevatedButton.icon(
           onPressed: () {
             setState(() {
-              answers.add('');
+              answerControllers.add(
+                  TextEditingController()); // Thêm mới 1 ô nhập liệu
               isEdited = true;
             });
           },

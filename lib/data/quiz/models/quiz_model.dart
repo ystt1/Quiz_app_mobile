@@ -31,9 +31,9 @@ class BasicQuizModel {
 
     return BasicQuizModel(
       id: map['_id'] as String? ?? '',
-      // Default to empty string
+
       name: map['name'] as String? ?? 'Untitled Quiz',
-      // Default value
+
       description: map['description'] as String? ?? 'No description provided.',
       topicId: (map['topicId'] as List<dynamic>?)
               ?.map((topic) => TopicModel.fromMap(topic))
@@ -41,15 +41,15 @@ class BasicQuizModel {
           [],
       questions: parsedQuestions,
       image: map['image'] as String? ?? '',
-      // Default to empty string
+
       idCreator: map['idCreator'] as String? ?? 'Unknown Creator',
-      // Default value
+
       status: map['status'] as String? ?? 'inactive',
-      // Default to inactive
+
       time: map['time'] as int? ?? 0,
-      // Default to 0
+
       createdAt:DateFormat('dd/MM/yyyy').format(DateTime.parse( map['createdAt'] as String) )??"",
-      // Default to empty string
+
       numberQuestion: rawQuestions?.length ?? 0,
     );
   }

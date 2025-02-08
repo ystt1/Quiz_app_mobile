@@ -37,12 +37,73 @@ class _ModalContentState extends State<AddQuestionModal> {
   String content = '';
 
   void onSave(BuildContext context) {
+
+    if (content.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Question content cannot be empty!')),
+      );
+      return;
+    }
+
+
+    if (selectedType == 'selected-one' && answers.length < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Single-choice questions must have at least 1 answer!')),
+      );
+      return;
+    }
+
+    if (selectedType == 'selected-many' && answers.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Multiple-choice questions must have at least 2 answers!')),
+      );
+      return;
+    }
+
+
+
+
     if (selectedType == 'fill-in-the-blank' || selectedType == 'drag-and-drop') {
       final regex = RegExp(r'\{(.*?)\}');
       final matches = regex.allMatches(content);
-      answers = matches.map((match) => match.group(1) ?? '').toList();
+
+      // Kiểm tra nếu không có match nào
+      if (matches.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Fill-in-the-blank questions must have at least one blank!')),
+        );
+        return;
+      }
+
+      // Cập nhật danh sách answers
+      answers = matches.map((match) => match.group(1)?.trim() ?? '').toList();
+
+      // Kiểm tra nếu có câu trả lời rỗng sau khi lấy từ content
+      if (answers.any((answer) => answer.isEmpty)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Fill-in-the-blank answers cannot be empty!')),
+        );
+        return;
+      }
+
+      // Thay thế {đáp án} bằng dấu ___ trong content
       content = content.replaceAll(regex, '___');
     }
+
+    if (selectedType != 'constructed' && answers.any((answer) => answer.trim().isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Answers cannot be empty!')),
+      );
+      return;
+    }
+
+    if (selectedType == 'constructed' && shortAnswerCorrect.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Correct answer cannot be empty for constructed questions!')),
+      );
+      return;
+    }
+
 
     final List<BasicAnswerModel> answerModels = answers.map((answer) {
       bool isCorrect = false;
@@ -68,8 +129,10 @@ class _ModalContentState extends State<AddQuestionModal> {
       answers: answerModels,
     );
 
-   context.read<ButtonStateCubit>().execute(usecase: AddQuestionUseCase(),params: question);
+    print(question.toMap());
+    context.read<ButtonStateCubit>().execute(usecase: AddQuestionUseCase(), params: question);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -135,13 +198,27 @@ class _ModalContentState extends State<AddQuestionModal> {
                               items: questionTypes,
                               onChanged: (value) {
                                 setState(() {
+                                  String previousType = selectedType;
                                   selectedType = value!;
-                                  answers = [''];
+
                                   selectedSingleChoiceIndex = null;
                                   selectedMultiChoiceIndices.clear();
                                   shortAnswerCorrect = '';
+
+
+                                  if (previousType != 'selected-many' && selectedType == 'selected-many') {
+                                    if (answers.isEmpty) {
+                                      answers = [''];
+                                    }
+                                  }
+
+                                  else if (selectedType != 'selected-many' && selectedType != 'selected-one') {
+                                    answers = [''];
+                                  }
                                 });
                               },
+
+
                             ),
                             const SizedBox(height: 16),
                             _buildSlider(

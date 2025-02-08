@@ -4,10 +4,10 @@ import 'package:quiz_app/domain/quiz/repository/quiz_repository.dart';
 
 import '../../../service_locator.dart';
 
-class GetHotQuizUseCase implements UseCase<Either,dynamic> {
+class GetHotQuizUseCase implements UseCase<Either,String> {
   @override
-  Future<Either> call({params}) async {
-    return await sl<QuizRepository>().getHotQuiz();
+  Future<Either> call({String? params}) async {
+    return await sl<QuizRepository>().getHotQuiz(params!);
   }
 
 }

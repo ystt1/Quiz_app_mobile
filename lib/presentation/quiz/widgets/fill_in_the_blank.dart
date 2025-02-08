@@ -2,27 +2,77 @@ import 'package:flutter/material.dart';
 import 'package:quiz_app/data/quiz/models/practice_payload.dart';
 import 'package:quiz_app/domain/question/entity/basic_question_entity.dart';
 
-class FillInTheBlank extends StatelessWidget {
+class FillInTheBlank extends StatefulWidget {
   final BasicQuestionEntity question;
   final Function(PracticePayloadModel result) onChange;
   final PracticePayloadModel result;
   final int index;
+
   const FillInTheBlank({
     super.key,
     required this.question,
     required this.onChange,
-    required this.result, required this.index,
+    required this.result,
+    required this.index,
   });
 
   @override
-  Widget build(BuildContext context) {
-    List<String> currentAnswers = result.userAnswers[index];
+  _FillInTheBlankState createState() => _FillInTheBlankState();
+}
 
+class _FillInTheBlankState extends State<FillInTheBlank> {
+  late List<TextEditingController> controllers;
+
+  @override
+  void initState() {
+    super.initState();
+    controllers = List.generate(
+      widget.question.answers.length,
+          (i) => TextEditingController(
+        text: widget.result.userAnswers[widget.index].length > i
+            ? widget.result.userAnswers[widget.index][i]
+            : '',
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    for (var controller in controllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _updateAnswer(int blankIndex, String value) {
+    var updatedUserAnswers = widget.result.userAnswers
+        .map((list) => List<String>.from(list))
+        .toList();
+
+    if (updatedUserAnswers[widget.index].length > blankIndex) {
+      updatedUserAnswers[widget.index][blankIndex] = value;
+    } else {
+      updatedUserAnswers[widget.index].add(value);
+    }
+
+    var updatedResult = PracticePayloadModel(
+      userAnswers: updatedUserAnswers,
+      status: widget.result.status,
+      completeTime: widget.result.completeTime,
+      quizId: widget.result.quizId,
+      questions: widget.result.questions,
+    );
+
+    widget.onChange(updatedResult);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Text.rich(
         TextSpan(
-          children: question.content
+          children: widget.question.content
               .split('___')
               .asMap()
               .entries
@@ -37,8 +87,8 @@ class FillInTheBlank extends StatelessWidget {
                   fontSize: 16,
                   color: Colors.black87,
                 ),
-              ), // Text before blank
-              if (blankIndex < question.answers.length)
+              ),
+              if (blankIndex < widget.question.answers.length)
                 WidgetSpan(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -51,30 +101,8 @@ class FillInTheBlank extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: TextField(
-                          controller: TextEditingController(
-                            text: currentAnswers.length > blankIndex
-                                ? currentAnswers[blankIndex]
-                                : '',
-                          ),
-                          onChanged: (value) {
-                            var updatedUserAnswers =
-                            result.userAnswers.map((list) => List<String>.from(list)).toList();
-
-                            if (updatedUserAnswers[index].length > blankIndex) {
-                              updatedUserAnswers[index][blankIndex] = value;
-                            } else {
-                              updatedUserAnswers[index].add(value);
-                            }
-
-                            var updatedResult = PracticePayloadModel(
-                              userAnswers: updatedUserAnswers,
-                              status: result.status,
-                              completeTime: result.completeTime,
-                                quizId: result.quizId
-                            );
-
-                            onChange(updatedResult);
-                          },
+                          controller: controllers[blankIndex],
+                          onChanged: (value) => _updateAnswer(blankIndex, value),
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Fill in the blank',

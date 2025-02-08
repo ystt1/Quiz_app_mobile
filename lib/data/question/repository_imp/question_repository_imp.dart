@@ -15,8 +15,8 @@ class QuestionRepositoryImp extends QuestionRepository {
   }
 
   @override
-  Future<Either> deleteQuestion() async {
-    return await sl<QuestionService>().deleteQuestionService();
+  Future<Either> deleteQuestion(String id) async {
+    return await sl<QuestionService>().deleteQuestionService(id);
   }
 
   @override

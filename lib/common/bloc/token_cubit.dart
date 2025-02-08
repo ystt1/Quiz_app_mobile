@@ -28,12 +28,12 @@ class TokenCubit extends Cubit<TokenState> {
       response.fold((error) {
         emit(TokenFailure(error: error));
       }, (data) async {
-        print(data);
+
         await _tokenService.saveTokens(data.accessToken, data.refreshToken);
         emit(TokenSuccess());
       });
     }catch (e) {
-      print(e.toString());
+
       emit(TokenFailure(error: e.toString()));
     }
   }
