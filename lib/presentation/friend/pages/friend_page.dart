@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quiz_app/common/bloc/button/button_state_cubit.dart';
+import 'package:quiz_app/common/bloc/conversation/get_list_conversation_cubit.dart';
+import 'package:quiz_app/common/bloc/conversation/get_list_conversaton_state.dart';
 import 'package:quiz_app/common/widgets/build_base_64_image.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
+import 'package:quiz_app/domain/conversation/usecase/get_list_conversation_usecase.dart';
 import 'package:quiz_app/domain/user/usecase/get_friend_request_usecase.dart';
 import 'package:quiz_app/presentation/friend/bloc/get_friend_cubit.dart';
 import 'package:quiz_app/presentation/friend/bloc/get_friend_request_cubit.dart';
 import 'package:quiz_app/presentation/friend/bloc/get_friend_request_state.dart';
 import 'package:quiz_app/presentation/friend/bloc/get_friend_state.dart';
+import 'package:quiz_app/presentation/friend/widgets/conversation_tab.dart';
 import 'package:quiz_app/presentation/friend/widgets/friend_list_tab.dart';
 import 'package:quiz_app/presentation/friend/widgets/header.dart';
 
@@ -63,10 +67,11 @@ class _FriendsPageState extends State<FriendsPage>
                 ..onGet(useCase: GetFriendRequestUseCase())),
           BlocProvider(
               create: (_) => GetFriendCubit()
-                ..onGet(useCase: GetFriendUseCase())),
+                ..onGet(useCase: GetFriendUseCase(),params: "")),
           BlocProvider(
               create: (_) => ButtonStateCubit()
                 ),
+          BlocProvider(create: (_)=>GetListConversationCubit()..onGet(usecase: GetListConversationUseCase()))
         ],
         child: Scaffold(
           appBar: PreferredSize(
@@ -92,18 +97,21 @@ class _FriendsPageState extends State<FriendsPage>
           body: TabBarView(
             controller: _tabController,
             children: [
-              /// **Tab 1: Danh sách tin nhắn**
-              ListView.builder(
-                itemCount: friends.length,
-                itemBuilder: (context, index) {
-                  var friend = friends[index];
-                  return ListTile(
-                    leading: CircleAvatar(
-                        child: Base64ImageWidget(base64String: "",),),
-                    title: Text(friend['name']!),
-                    subtitle: Text(friend['lastMessage']!),
-                    onTap: () {},
-                  );
+              BlocBuilder<GetListConversationCubit,GetListConversationState>(
+                builder: (BuildContext context, GetListConversationState state) {
+                  if(state is GetListConversationLoading)
+                    {
+                      return GetLoading();
+                    }
+                  if(state is GetListConversationFailure)
+                    {
+                      return GetFailure(name: state.error);
+                    }
+                  if(state is GetListConversationSuccess)
+                    {
+                      return ConversationTab(conversations: state.conversations,);
+                    }
+                  return GetSomethingWrong();
                 },
               ),
 
@@ -117,7 +125,7 @@ class _FriendsPageState extends State<FriendsPage>
                       }
                     if(state is GetFriendFailure)
                       {
-                        print(state.error);
+
                         return GetFailure(name: state.error);
                       }
                     if(state is GetFriendSuccess)

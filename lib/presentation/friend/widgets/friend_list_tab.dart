@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:quiz_app/common/widgets/build_avatar.dart';
+import 'package:quiz_app/common/widgets/build_base_64_image.dart';
 import 'package:quiz_app/domain/user/entity/sample_user_entity.dart';
+
+import '../pages/chatting_page.dart';
 
 class FriendListTab extends StatelessWidget {
   final List<SimpleUserEntity> friends;
@@ -31,10 +34,20 @@ class FriendListTab extends StatelessWidget {
             itemBuilder: (context, index) {
               var friend = friends[index];
               return ListTile(
-                leading: buildAvatar(friend.avatar),
+                leading: CircleAvatar(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(60),
+                    child: Base64ImageWidget(base64String: friend.avatar,),
+                  ),
+                ),
                 title: Text(friend.email),
                 subtitle: const Text("Active now"),
-                onTap: () {},
+                onTap: () {Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChattingPage(user: friend,),
+                  ),
+                );},
               );
             },
           ),

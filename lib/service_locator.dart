@@ -1,6 +1,9 @@
 import 'package:get_it/get_it.dart';
+import 'package:quiz_app/core/constant/socket_service.dart';
 import 'package:quiz_app/data/auth/repository_imp/auth_repository_imp.dart';
 import 'package:quiz_app/data/auth/service/auth_service.dart';
+import 'package:quiz_app/data/conversation/repository_imp/conversation_repository_imp.dart';
+import 'package:quiz_app/data/conversation/service/conversation_service.dart';
 import 'package:quiz_app/data/post/repository_imp/post_repository_imp.dart';
 import 'package:quiz_app/data/post/service/post_service.dart';
 import 'package:quiz_app/data/question/repository_imp/question_repository_imp.dart';
@@ -14,6 +17,9 @@ import 'package:quiz_app/data/user/service/user_service.dart';
 import 'package:quiz_app/domain/auth/repository/auth_repository.dart';
 import 'package:quiz_app/domain/auth/usecase/login_usecase.dart';
 import 'package:quiz_app/domain/auth/usecase/register_usecase.dart';
+import 'package:quiz_app/domain/conversation/repository/conversation_repository.dart';
+import 'package:quiz_app/domain/conversation/usecase/get_list_conversation_usecase.dart';
+import 'package:quiz_app/domain/conversation/usecase/get_message_usecase.dart';
 import 'package:quiz_app/domain/post/repository/post_repository.dart';
 import 'package:quiz_app/domain/post/usecase/add_post_usecase.dart';
 import 'package:quiz_app/domain/post/usecase/get_comment_usecase.dart';
@@ -68,6 +74,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<TeamService>(TeamServiceImp());
   sl.registerSingleton<PostService>(PostServiceImp());
   sl.registerSingleton<UserService>(UserServiceImp());
+  sl.registerSingleton<ConversationService>(ConversationServiceImp());
 //repository
   sl.registerSingleton<AuthRepository>(AuthRepositoryImp());
   sl.registerSingleton<QuizRepository>(QuizRepositoryImp());
@@ -75,6 +82,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<TeamRepository>(TeamRepositoryImp());
   sl.registerSingleton<PostRepository>(PostRepositoryImp());
   sl.registerSingleton<UserRepository>(UserRepositoryImp());
+  sl.registerSingleton<ConversationRepository>(ConversationRepositoryImp());
 //usecase
 
 
@@ -126,4 +134,11 @@ Future<void> initializeDependencies() async {
   //token
   sl.registerSingleton<TokenService>(TokenService());
   sl.registerFactory(() => ApiService(sl<TokenService>()));
+
+  //conversation
+  sl.registerSingleton<SocketService>(SocketService());
+
+
+  sl.registerSingleton<GetListConversationUseCase>(GetListConversationUseCase());
+  sl.registerSingleton<GetMessageUseCase>(GetMessageUseCase());
 }

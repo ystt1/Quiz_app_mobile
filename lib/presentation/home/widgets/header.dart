@@ -9,6 +9,8 @@ import 'package:quiz_app/common/widgets/get_something_wrong.dart';
 import 'package:quiz_app/presentation/profile/page/profile_page.dart';
 import 'package:quiz_app/presentation/search/pages/search_page.dart';
 
+import '../../../core/global_storage.dart';
+
 class Header extends StatelessWidget {
   const Header({super.key});
 
@@ -23,6 +25,7 @@ class Header extends StatelessWidget {
           return GetFailure(name: state.error);
         }
         if (state is GetUserDetailSuccess) {
+          GlobalStorage.saveUserId(state.user.id);
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

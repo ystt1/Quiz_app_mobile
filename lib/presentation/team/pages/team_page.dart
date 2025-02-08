@@ -50,7 +50,7 @@ class _TeamPageState extends State<TeamPage> {
 
   void searchCode(BuildContext context, String code) {
     context.read<GetTeamCubit>().onGet(usecase: GetListTeamUseCase(), params: "code=$code");
-    setState(() {}); // Cập nhật lại UI nếu cần
+    setState(() {});
   }
 
 
