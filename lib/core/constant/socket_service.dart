@@ -17,7 +17,7 @@ class SocketService {
   Future<void> initSocket() async {
 
     _socket = IO.io(
-      'http://$url:5000',
+      '$url',
       IO.OptionBuilder()
           .setTransports(["websocket"])
           .disableAutoConnect()

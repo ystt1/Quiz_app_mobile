@@ -17,7 +17,7 @@ class AuthServiceImp extends AuthService {
   @override
   Future<Either> login(LoginPayLoad user) async {
     try {
-      final uri = Uri.parse('http://$url:5000/api/user/log-in');
+      final uri = Uri.parse('$url/user/log-in');
       final response = await http.post(uri,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(user.toMap()));
@@ -35,7 +35,7 @@ class AuthServiceImp extends AuthService {
   @override
   Future<Either> register(RegisterPayload user) async {
     try {
-      final uri = Uri.parse('http://$url:5000/api/user');
+      final uri = Uri.parse('$url/user');
       final response = await http.post(uri,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(user.toMap()));

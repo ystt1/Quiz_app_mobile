@@ -1,1 +1,1 @@
-String url="192.168.88.250";
+String url="https://quizzmanagement-backend.onrender.com";

@@ -29,7 +29,7 @@ class PostServiceImp extends PostService{
       print(comment.toMap());
       final apiService = sl<ApiService>();
       final response = await apiService
-          .post('http://$url:5000/api/comment', comment.toMap());
+          .post('$url/comment', comment.toMap());
       if  (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
       }
@@ -46,7 +46,7 @@ class PostServiceImp extends PostService{
    try {
       final apiService = sl<ApiService>();
       final response = await apiService
-          .post('http://$url:5000/api/post', post.toMap());
+          .post('$url/post', post.toMap());
       if  (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
       }
@@ -64,7 +64,7 @@ class PostServiceImp extends PostService{
 
       final apiService = sl<ApiService>();
       final response = await apiService
-          .get('http://$url:5000/api/post?teamId=$teamId');
+          .get('$url/post?teamId=$teamId');
 
       if (response.statusCode == 200) {
         
@@ -87,7 +87,7 @@ class PostServiceImp extends PostService{
     try {
 
       final response = await http.get(
-          Uri.parse('http://$url:5000/api/comment?${comment.post!=""?"idPost=${comment.post}":"idQuiz=${comment.idQuiz}"}&sortType=${comment.sortType}'));
+          Uri.parse('$url/comment?${comment.post!=""?"idPost=${comment.post}":"idQuiz=${comment.idQuiz}"}&sortType=${comment.sortType}'));
 
       if (response.statusCode == 200) {
         final data =
@@ -116,7 +116,7 @@ class PostServiceImp extends PostService{
     try {
       final apiService = sl<ApiService>();
       final response = await apiService
-          .post('http://$url:5000/api/post/$idPost/like', {});
+          .post('$url/post/$idPost/like', {});
       if  (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
       }

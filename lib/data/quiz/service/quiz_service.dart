@@ -55,7 +55,7 @@ class QuizServiceImp extends QuizService {
   Future<Either> getHotQuizService(String filter) async {
     try {
       print(filter);
-      final uri = Uri.parse('http://$url:5000/api/quiz?status=active&$filter');
+      final uri = Uri.parse('$url/quiz?status=active&$filter');
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body)["data"];
@@ -76,7 +76,7 @@ class QuizServiceImp extends QuizService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.get(
-        'http://$url:5000/api/quiz/get-my-quiz?name=${searchSort.name}&sortField=${searchSort.sortField}&sortOrder=${searchSort.direction}',
+        '$url/quiz/get-my-quiz?name=${searchSort.name}&sortField=${searchSort.sortField}&sortOrder=${searchSort.direction}',
       );
 
       if (response.statusCode == 200) {
@@ -103,7 +103,7 @@ class QuizServiceImp extends QuizService {
   Future<Either> getNewestQuizService() async {
     try {
       final uri = Uri.parse(
-          'http://$url:5000/api/quiz?filterType=newest&status=active');
+          '$url/quiz?filterType=newest&status=active');
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body)["data"];
@@ -122,7 +122,7 @@ class QuizServiceImp extends QuizService {
   @override
   Future<Either> getQuizDetailService(String id) async {
     try {
-      final uri = Uri.parse('http://$url:5000/api/quiz/$id');
+      final uri = Uri.parse('$url/quiz/$id');
       final response = await http.get(uri);
       print(response.body);
       if (response.statusCode == 200) {
@@ -142,7 +142,7 @@ class QuizServiceImp extends QuizService {
   Future<Either> getRecentQuizService() async {
     try {
       final uri = Uri.parse(
-          'http://$url:5000/api/quiz?filterType=recent&status=active');
+          '$url/quiz?filterType=recent&status=active');
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body)["data"];
@@ -164,7 +164,7 @@ class QuizServiceImp extends QuizService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.delete(
-          'http://$url:5000/api/quiz/${quizQues.quizId}/questions',
+          '$url/quiz/${quizQues.quizId}/questions',
           quizQues.toMap());
 
       if (response.statusCode == 200) {
@@ -181,7 +181,7 @@ class QuizServiceImp extends QuizService {
   @override
   Future<Either> searchListQuizService() async {
     try {
-      final uri = Uri.parse('http://$url:5000/api/quiz');
+      final uri = Uri.parse('$url/quiz');
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body)["data"];
@@ -200,7 +200,7 @@ class QuizServiceImp extends QuizService {
   @override
   Future<Either> getAllTopic() async {
     try {
-      final uri = Uri.parse('http://$url:5000/api/topic');
+      final uri = Uri.parse('$url/topic');
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body)["data"];
@@ -220,7 +220,7 @@ class QuizServiceImp extends QuizService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.post(
-          'http://$url:5000/api/quiz/${quizQues.quizId}/questions',
+          '$url/quiz/${quizQues.quizId}/questions',
           quizQues.toMap());
 
       if (response.statusCode == 200) {
@@ -239,7 +239,7 @@ class QuizServiceImp extends QuizService {
     try {
       final apiService = sl<ApiService>();
       final response =
-          await apiService.post('http://$url:5000/api/quiz', quiz.toMap());
+          await apiService.post('$url/quiz', quiz.toMap());
 
       if (response.statusCode == 200) {
         return Right(true);
@@ -256,7 +256,7 @@ class QuizServiceImp extends QuizService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.put(
-          'http://$url:5000/api/quiz/${quiz.id}', quiz.toMap());
+          '$url/quiz/${quiz.id}', quiz.toMap());
 
       if (response.statusCode == 200) {
         return Right(true);
@@ -273,7 +273,7 @@ class QuizServiceImp extends QuizService {
     try {
       final apiService = sl<ApiService>();
       final response =
-          await apiService.post('http://$url:5000/api/result', result.toMap());
+          await apiService.post('$url/result', result.toMap());
       print(response.body);
       if (response.statusCode == 200) {
         final data = ResultModel.fromMap(jsonDecode(response.body)["data"]);
@@ -292,7 +292,7 @@ class QuizServiceImp extends QuizService {
       print("idQUiz"+idQuiz);
       final apiService = sl<ApiService>();
       final response = await apiService
-          .post('http://$url:5000/api/result/leadboard', {"idQuiz": idQuiz});
+          .post('$url/result/leadboard', {"idQuiz": idQuiz});
       print(jsonDecode(response.body)["data"]["myData"]);
       if (response.statusCode == 200) {
         final decodedResponse = jsonDecode(response.body);
@@ -317,7 +317,7 @@ class QuizServiceImp extends QuizService {
       print(params);
       final apiService = sl<ApiService>();
       final response = await apiService.get(
-        'http://$url:5000/api/result?$params',
+        '$url/result?$params',
       );
       print(response.body);
       if (response.statusCode == 200) {
@@ -339,7 +339,7 @@ class QuizServiceImp extends QuizService {
     try {
       final apiService = sl<ApiService>();
       final response =
-          await apiService.delete('http://$url:5000/api/quiz/$id', {});
+          await apiService.delete('$url/quiz/$id', {});
       if (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
       }

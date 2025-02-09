@@ -76,7 +76,7 @@ class QuestionServiceImp extends QuestionService {
   Future<Either> addQuestionService(QuestionPayload question) async {
     try {
       final apiService = sl<ApiService>();
-      final response = await apiService.post('http://$url:5000/api/question', question.toMap());
+      final response = await apiService.post('$url/question', question.toMap());
       if(response.statusCode==200)
       {
         return Right(true);
@@ -91,7 +91,7 @@ class QuestionServiceImp extends QuestionService {
   Future<Either> deleteQuestionService(String id) async {
     try {
       final apiService = sl<ApiService>();
-      final response = await apiService.delete('http://$url:5000/api/question/$id',{});
+      final response = await apiService.delete('$url/question/$id',{});
       if(response.statusCode==200)
       {
         return Right(true);
@@ -107,7 +107,7 @@ class QuestionServiceImp extends QuestionService {
     try {
 
       final apiService = sl<ApiService>();
-      final response = await apiService.put('http://$url:5000/api/question/${question.id}', question.toMap());
+      final response = await apiService.put('$url/question/${question.id}', question.toMap());
       if(response.statusCode==200)
       {
         return Right(true);
@@ -125,7 +125,7 @@ class QuestionServiceImp extends QuestionService {
   Future<Either> getListQuestionService(String quizId) async {
     try {
       final apiService = sl<ApiService>();
-      final response = await apiService.get('http://$url:5000/api/quiz/practice/${quizId}');
+      final response = await apiService.get('$url/quiz/practice/${quizId}');
       if(response.statusCode==200)
       {
         final List<dynamic> data = jsonDecode(response.body)["data"];
@@ -148,7 +148,7 @@ class QuestionServiceImp extends QuestionService {
   Future<Either> getListMyQuestionService(SearchAndSortModel searchSort) async {
     try {
       final apiService = sl<ApiService>();
-      final response = await apiService.get('http://$url:5000/api/question/get-my-question?name=${searchSort.name}&sortField=${searchSort.sortField}&sortOrder=${searchSort.direction}');
+      final response = await apiService.get('$url/question/get-my-question?name=${searchSort.name}&sortField=${searchSort.sortField}&sortOrder=${searchSort.direction}');
       if(response.statusCode==200)
       {
         final List<dynamic> data = jsonDecode(response.body)["data"];

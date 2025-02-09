@@ -112,7 +112,7 @@ class ApiService {
 
     try {
       final response = await http.post(
-        Uri.parse('http://$url:5000/api/user/refresh-token'),
+        Uri.parse('$url/user/refresh-token'),
         headers: {
           'Content-Type': 'application/json',
           'token': 'Bearer $refreshToken',

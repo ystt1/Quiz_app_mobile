@@ -19,7 +19,7 @@ class ConversationServiceImp extends ConversationService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.get(
-        'http://$url:5000/api/conversation',
+        '$url/conversation',
       );
       print(response.body);
       if (response.statusCode == 200) {
@@ -42,7 +42,7 @@ class ConversationServiceImp extends ConversationService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.get(
-        'http://$url:5000/api/message/$id',
+        '$url/message/$id',
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body)["data"];

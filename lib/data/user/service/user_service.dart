@@ -35,9 +35,9 @@ class UserServiceImp extends UserService {
       final apiService = sl<ApiService>();
       var response;
       if (userId != '') {
-        response = await apiService.get('http://$url:5000/api/user/$userId');
+        response = await apiService.get('$url/user/$userId');
       } else {
-        response = await apiService.get('http://$url:5000/api/user/my-profile');
+        response = await apiService.get('$url/user/my-profile');
       }
       if (response.statusCode == 200) {
         return Right(UserModel.fromMap(jsonDecode(response.body)["data"]));
@@ -55,7 +55,7 @@ class UserServiceImp extends UserService {
       print("abc");
       final apiService = sl<ApiService>();
       final response = await apiService.put(
-          'http://$url:5000/api/user/change-profile', profile.toMap());
+          '$url/user/change-profile', profile.toMap());
       print(response.statusCode);
       if (response.statusCode == 200) {
         return const Right(true);
@@ -71,7 +71,7 @@ class UserServiceImp extends UserService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.post(
-          'http://$url:5000/api/friend',{'recipientId':id});
+          '$url/friend',{'recipientId':id});
       print(response.statusCode);
       if (response.statusCode == 200) {
         return const Right(true);
@@ -87,7 +87,7 @@ class UserServiceImp extends UserService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.post(
-          'http://$url:5000/api/friend/cancel',{'friendId':id});
+          '$url/friend/cancel',{'friendId':id});
       if (response.statusCode == 200) {
         return const Right(true);
       }
@@ -103,7 +103,7 @@ class UserServiceImp extends UserService {
 
       final apiService = sl<ApiService>();
       final response = await apiService.post(
-          'http://$url:5000/api/friend/accept',{'requesterId':id});
+          '$url/friend/accept',{'requesterId':id});
       if (response.statusCode == 200) {
         return const Right(true);
       }
@@ -118,7 +118,7 @@ class UserServiceImp extends UserService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.delete(
-          'http://$url:5000/api/friend/cancel',{'friendId':id});
+          '$url/friend/cancel',{'friendId':id});
       if (response.statusCode == 200) {
         return const Right(true);
       }
@@ -132,7 +132,7 @@ class UserServiceImp extends UserService {
   Future<Either> getListFriend(String id) async {
     try {
       final apiService = sl<ApiService>();
-      final response = await apiService.get('http://$url:5000/api/friend/friends${id!=""?"?idUser=$id":""}',);
+      final response = await apiService.get('$url/friend/friends${id!=""?"?idUser=$id":""}',);
       print(response.body);
       if(response.statusCode==200)
       {
@@ -153,7 +153,7 @@ class UserServiceImp extends UserService {
     try {
 
       final apiService = sl<ApiService>();
-      final response = await apiService.get('http://$url:5000/api/friend/request',);
+      final response = await apiService.get('$url/friend/request',);
 
       if(response.statusCode==200)
       {

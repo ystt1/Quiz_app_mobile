@@ -53,7 +53,7 @@ class TeamServiceImp extends TeamService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService
-          .post('http://$url:5000/api/request-join', {'idTeam': teamId});
+          .post('$url/request-join', {'idTeam': teamId});
 
       if (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
@@ -71,7 +71,7 @@ class TeamServiceImp extends TeamService {
     try {
       final apiService = sl<ApiService>();
       final response =
-          await apiService.post('http://$url:5000/api/team', team.toMap());
+          await apiService.post('$url/team', team.toMap());
 
       if (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
@@ -95,7 +95,7 @@ class TeamServiceImp extends TeamService {
     try {
       print(params);
       final apiService = sl<ApiService>();
-      final response = await apiService.get('http://$url:5000/api/team?$params');
+      final response = await apiService.get('$url/team?$params');
       if (response.statusCode == 200) {
         List<dynamic> data = (jsonDecode(response.body)["data"]);
         List<TeamModel> teams = data.map((e) => TeamModel.fromMap(e)).toList();
@@ -113,7 +113,7 @@ class TeamServiceImp extends TeamService {
   Future<Either> getTeamDetailService(String teamId) async {
     try {
       final apiService = sl<ApiService>();
-      final response = await apiService.get('http://$url:5000/api/team/$teamId');
+      final response = await apiService.get('$url/team/$teamId');
       if (response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body)["data"];
         return Right(TeamModel.fromMap(data));
@@ -131,7 +131,7 @@ class TeamServiceImp extends TeamService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService
-          .put('http://$url:5000/api/team/${kickUser.teamId}', kickUser.toMap());
+          .put('$url/team/${kickUser.teamId}', kickUser.toMap());
       if (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
       }
@@ -148,7 +148,7 @@ class TeamServiceImp extends TeamService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService
-          .delete('http://$url:5000/api/request-join', {'idTeam': teamId});
+          .delete('$url/request-join', {'idTeam': teamId});
 
       if (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
@@ -168,11 +168,11 @@ class TeamServiceImp extends TeamService {
       if (teamId == '') {
         final apiService = sl<ApiService>();
         response =
-            await apiService.get('http://$url:5000/api/request-join');
+            await apiService.get('$url/request-join');
       } else {
 
         response = await http.get(
-            Uri.parse('http://$url:5000/api/request-join?status=pending&idTeam=$teamId'));
+            Uri.parse('$url/request-join?status=pending&idTeam=$teamId'));
       }
       if (response.statusCode == 200) {
         final data =
@@ -194,7 +194,7 @@ class TeamServiceImp extends TeamService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService
-          .put('http://$url:5000/api/request-join/${status.requestId}', status.toMap());
+          .put('$url/request-join/${status.requestId}', status.toMap());
       if (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
       }
@@ -211,7 +211,7 @@ class TeamServiceImp extends TeamService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService
-          .post('http://$url:5000/api/team/leave/$teamId',{});
+          .post('$url/team/leave/$teamId',{});
       if (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
       }
@@ -228,7 +228,7 @@ class TeamServiceImp extends TeamService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService
-          .put('http://$url:5000/api/team/${teamQuizzes.idTeam}',{'addQuiz':[...teamQuizzes.quizIds]});
+          .put('$url/team/${teamQuizzes.idTeam}',{'addQuiz':[...teamQuizzes.quizIds]});
       if (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
       }
@@ -246,7 +246,7 @@ class TeamServiceImp extends TeamService {
 
       final apiService = sl<ApiService>();
       final response = await apiService
-          .put('http://$url:5000/api/team/${teamQuizzes.idTeam}',{'removeQuiz':[teamQuizzes.quizIds]});
+          .put('$url/team/${teamQuizzes.idTeam}',{'removeQuiz':[teamQuizzes.quizIds]});
       print(response.body);
       if (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
