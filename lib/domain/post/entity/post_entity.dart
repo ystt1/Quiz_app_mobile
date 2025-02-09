@@ -1,3 +1,4 @@
+import 'package:quiz_app/domain/quiz/entity/simple_quiz_entity.dart';
 import 'package:quiz_app/domain/user/entity/sample_user_entity.dart';
 
 class PostEntity {
@@ -5,12 +6,11 @@ class PostEntity {
   final String content;
   final SimpleUserEntity creator;
   final String image;
-  final String quiz;
+  final SimpleQuizEntity quiz;
   final String createdAt;
   final int likeCount;
   final int commentCount;
   final bool statusLike;
-
   PostEntity(
       {required this.id,
       required this.content,

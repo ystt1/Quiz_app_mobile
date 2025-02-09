@@ -27,14 +27,18 @@ class UserScoreModel {
   }
 
   factory UserScoreModel.fromMap(Map<String, dynamic> map) {
+
     return UserScoreModel(
-      rank: map['rank'] as int,
-      completeTime: map['completeTime'] as int,
-      attemptTime: map['attempTime'] as int,
-      score: map['score'] as int,
-      user: SimpleUserModel.fromMap(map['user'] as Map<String, dynamic>),
+      rank: map['rank'] as int? ?? 0,
+      completeTime: map['completeTime'] as int? ?? 0,
+      attemptTime: map['attempTime'] as int? ?? 0,
+      score: map['score'] as int? ?? 0,
+      user: map['user'] != null
+          ? SimpleUserModel.fromMap(map['user'] as Map<String, dynamic>)
+          : SimpleUserModel(id: '', email: '', avatar: ''),
     );
   }
+
 }
 
 extension UserScoreModelToEntity on UserScoreModel {

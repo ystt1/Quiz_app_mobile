@@ -15,6 +15,8 @@ import 'package:quiz_app/presentation/library/bloc/get_quiz_detail_state.dart';
 import 'package:quiz_app/presentation/quiz/pages/do_practice_page.dart';
 import 'package:quiz_app/presentation/quiz/widgets/leader_board.dart';
 
+import '../widgets/share_modal.dart';
+
 class PracticeQuizDetailPage extends StatefulWidget {
   final String quizId;
   final String? teamId;
@@ -27,6 +29,19 @@ class PracticeQuizDetailPage extends StatefulWidget {
 class _PracticeQuizDetailPageState extends State<PracticeQuizDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
+  void _showShareModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return ShareModal(quizId: widget.quizId,);
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -115,6 +130,7 @@ class _PracticeQuizDetailPageState extends State<PracticeQuizDetailPage>
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16.0),
                               child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   IconButton(
                                     icon: const Icon(Icons.arrow_back,
@@ -122,6 +138,11 @@ class _PracticeQuizDetailPageState extends State<PracticeQuizDetailPage>
                                     onPressed: () {
                                       Navigator.pop(context);
                                     },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.share,
+                                        color: Colors.white),
+                                    onPressed: () => _showShareModal(context)
                                   ),
                                 ],
                               ),

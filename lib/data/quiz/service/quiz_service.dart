@@ -289,18 +289,24 @@ class QuizServiceImp extends QuizService {
   @override
   Future<Either> getLeaderBoard(String idQuiz) async {
     try {
+      print("idQUiz"+idQuiz);
       final apiService = sl<ApiService>();
       final response = await apiService
           .post('http://$url:5000/api/result/leadboard', {"idQuiz": idQuiz});
+      print(jsonDecode(response.body)["data"]["myData"]);
       if (response.statusCode == 200) {
-        final leaderBoard =
-            LeaderBoardModel.fromMap(jsonDecode(response.body)["data"]);
+        final decodedResponse = jsonDecode(response.body);
+        if (decodedResponse["data"] == null) {
+          return Left("No leaderboard data found");
+        }
+        final leaderBoard = LeaderBoardModel.fromMap(decodedResponse["data"]);
         return Right(leaderBoard);
       }
       ;
       return Left((jsonDecode(response.body)["message"]) ??
           Left((jsonDecode(response.body)["message"][["message"]])));
     } catch (e) {
+      print(e.toString());
       return Left(e.toString());
     }
   }
@@ -308,11 +314,12 @@ class QuizServiceImp extends QuizService {
   @override
   Future<Either> getListResultService(String params) async {
     try {
+      print(params);
       final apiService = sl<ApiService>();
       final response = await apiService.get(
         'http://$url:5000/api/result?$params',
       );
-
+      print(response.body);
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body)["data"];
         final results =
@@ -321,7 +328,7 @@ class QuizServiceImp extends QuizService {
       }
       ;
       return Left((jsonDecode(response.body)["message"]["message"]) ??
-          "Some thing went wrong");
+          (jsonDecode(response.body)["message"]));
     } catch (e) {
       return Left(e.toString());
     }

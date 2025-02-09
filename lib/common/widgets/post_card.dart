@@ -8,15 +8,16 @@ import 'package:quiz_app/common/widgets/build_base_64_image.dart';
 import 'package:quiz_app/common/widgets/click_user_detail.dart';
 import 'package:quiz_app/common/widgets/comment_modal.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
+import 'package:quiz_app/common/widgets/text_expandable.dart';
 import 'package:quiz_app/domain/post/entity/post_entity.dart';
 import 'package:quiz_app/domain/post/usecase/like_post_usecase.dart';
+import 'package:quiz_app/presentation/quiz/pages/practice_quiz_detail_page.dart';
 import 'package:quiz_app/presentation/team/bloc/get_list_post_cubit.dart';
 
 import '../helper/app_helper.dart';
 
 class PostCard extends StatefulWidget {
   final PostEntity post;
-
 
   const PostCard({super.key, required this.post});
 
@@ -40,14 +41,19 @@ class _PostCardState extends State<PostCard> {
           children: [
             Row(
               children: [
-                GestureDetector(onTap: (){
-                  onClickUser(context, widget.post.creator.id);
-                },child: CircleAvatar(
-                  child: ClipRRect(borderRadius: BorderRadius.circular(60),child: Base64ImageWidget(base64String:  widget.post.creator.avatar)),
-                )),
+                GestureDetector(
+                    onTap: () {
+                      onClickUser(context, widget.post.creator.id);
+                    },
+                    child: CircleAvatar(
+                      child: ClipRRect(
+                          borderRadius: BorderRadius.circular(60),
+                          child: Base64ImageWidget(
+                              base64String: widget.post.creator.avatar)),
+                    )),
                 const SizedBox(width: 10),
                 GestureDetector(
-                  onTap: (){
+                  onTap: () {
                     onClickUser(context, widget.post.creator.id);
                   },
                   child: Column(
@@ -62,7 +68,6 @@ class _PostCardState extends State<PostCard> {
                       ),
                       Text(
                         AppHelper.timeAgo(widget.post.createdAt),
-                        //widget.post.createdAt,
                         style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 12,
@@ -74,19 +79,70 @@ class _PostCardState extends State<PostCard> {
               ],
             ),
             const SizedBox(height: 10),
-            Text(
-              widget.post.content,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black87,
-              ),
-            ),
+            ExpandableText(text: widget.post.content),
             if (widget.post.image != '')
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Container(
                   height: 300,
-                  child: Base64ImageWidget(base64String: widget.post.image,),
+                  child: Base64ImageWidget(
+                    base64String: widget.post.image,
+                  ),
+                ),
+              ),
+            if (widget.post.quiz.id != '')
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Container(
+                  height: 250,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12), // Bo góc
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                        offset: Offset(0, 4),
+                      )
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (context) => PracticeQuizDetailPage(
+                                quizId: widget.post.quiz.id)),
+                      );
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(12)), // Bo tròn ảnh trên
+                            child: Base64ImageWidget(
+                              base64String: widget.post.quiz.image,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            widget.post.quiz.name,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             const SizedBox(height: 10),

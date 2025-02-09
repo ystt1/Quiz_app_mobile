@@ -33,13 +33,12 @@ class CommentModal extends StatefulWidget {
 class _CommentModalState extends State<CommentModal> {
   TextEditingController commentController = TextEditingController();
   CommentEntity? replyingTo;
-
+  String sortType = "newest";
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (BuildContext context) {
-          print(widget.idQuiz);
           if (widget.post == null && widget.idQuiz == null) {
             throw Exception("Post ID và Quiz ID không được null");
           }
@@ -49,6 +48,7 @@ class _CommentModalState extends State<CommentModal> {
               content: "",
               post: widget.post?.id ?? "",
               idQuiz: widget.idQuiz ?? "",
+              sortType: sortType,
             ));
         }),
         BlocProvider(create: (BuildContext context) => ButtonStateCubit()),
@@ -66,6 +66,7 @@ class _CommentModalState extends State<CommentModal> {
               content: "",
               post: widget.post?.id ?? "",
               idQuiz: widget.idQuiz ?? "",
+              sortType: sortType,
             ));
           }
         },
@@ -81,6 +82,7 @@ class _CommentModalState extends State<CommentModal> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+
                   BlocListener<ButtonStateCubit2, ButtonState2>(
                       listener: (BuildContext context, btnState) {
                         if (btnState is ButtonSuccessState2) {
@@ -99,35 +101,62 @@ class _CommentModalState extends State<CommentModal> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          widget.post != null
-                              ? IconButton(
-                                  icon: Icon(Icons.favorite_border,
-                                      color: widget.post!.statusLike == true
-                                          ? Colors.red
-                                          : null),
-                                  onPressed: () {
-                                    context.read<ButtonStateCubit2>().execute(
-                                        usecase: LikePostUseCase(),
-                                        params: widget.post!.id);
-                                  },
-                                )
-                              : SizedBox(),
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Navigator.pop(context),
                           ),
                         ],
                       )),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Sort by:", style: TextStyle(fontSize: 16)),
+                      DropdownButton<String>(
+                        value: sortType,
+                        items: [
+                          DropdownMenuItem(
+                            value: "newest",
+                            child: Text("Newest"),
+                          ),
+                          DropdownMenuItem(
+                            value: "most_replies",
+                            child: Text("Most Replies"),
+                          ),
+                        ],
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              sortType = newValue;
+                            });
+                            context.read<GetListCommentCubit>().onGet(
+                              CommentPayloadModal(
+                                parent: "",
+                                content: "",
+                                post: widget.post?.id ?? "",
+                                idQuiz: widget.idQuiz ?? "",
+                                sortType: sortType,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 10),
                   BlocBuilder<GetListCommentCubit, GetListCommentState>(
                     builder: (context, state) {
                       if (state is GetListCommentLoading) {
-                        return GetLoading();
+                        return Expanded(child: const GetLoading());
                       }
                       if (state is GetListCommentFailure) {
-                        return GetFailure(name: state.error);
+                        return Expanded(child: GetFailure(name: state.error));
                       }
                       if (state is GetListCommentSuccess) {
+                        if(state.comments.isEmpty)
+                          {
+                            return Expanded(child: const Center(child: Text("Let's the first person comment")));
+                          }
                         if (widget.post != null) {
                           widget.context.read<GetListPostCubit>().updatePost(
                               PostEntity(
@@ -160,7 +189,7 @@ class _CommentModalState extends State<CommentModal> {
                           ),
                         );
                       }
-                      return GetSomethingWrong();
+                      return const GetSomethingWrong();
                     },
                   ),
                   if (replyingTo != null)
@@ -199,7 +228,8 @@ class _CommentModalState extends State<CommentModal> {
                                     idQuiz:widget.idQuiz??"",
                                     post: widget.post?.id,
                                     parent: replyingTo?.id ?? "",
-                                    content: commentController.text));
+                                    content: commentController.text,
+                                  sortType: sortType, ));
                             setState(() {
                               commentController.clear();
                               replyingTo = null;

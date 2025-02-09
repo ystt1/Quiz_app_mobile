@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:quiz_app/common/helper/app_helper.dart';
 import 'package:quiz_app/common/widgets/build_avatar.dart';
+import 'package:quiz_app/common/widgets/text_expandable.dart';
 import 'package:quiz_app/domain/post/entity/comment_entity.dart';
 import 'package:quiz_app/domain/post/entity/post_entity.dart';
 
@@ -62,7 +63,7 @@ class _CommentCardState extends State<CommentCard> {
               const SizedBox(height: 5),
 
 
-              Text(widget.comment.content, style: const TextStyle(fontSize: 14)),
+              ExpandableText(text: widget.comment.content),
 
 
               Row(

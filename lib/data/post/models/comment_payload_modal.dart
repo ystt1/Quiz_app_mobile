@@ -3,12 +3,13 @@ class CommentPayloadModal {
   final String? idQuiz;
   final String parent;
   final String content;
-
+  final String sortType;
   CommentPayloadModal({
     this.post,
     this.idQuiz,
     required this.parent,
     required this.content,
+    required this.sortType
   });
 
   Map<String, dynamic> toMap() {

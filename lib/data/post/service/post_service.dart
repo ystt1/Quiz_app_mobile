@@ -87,7 +87,7 @@ class PostServiceImp extends PostService{
     try {
 
       final response = await http.get(
-          Uri.parse('http://$url:5000/api/comment?${comment.post!=""?"idPost=${comment.post}":"idQuiz=${comment.idQuiz}"}'));
+          Uri.parse('http://$url:5000/api/comment?${comment.post!=""?"idPost=${comment.post}":"idQuiz=${comment.idQuiz}"}&sortType=${comment.sortType}'));
 
       if (response.statusCode == 200) {
         final data =

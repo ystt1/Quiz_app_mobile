@@ -11,6 +11,7 @@ import 'package:quiz_app/common/widgets/search_sort.dart';
 import 'package:quiz_app/data/question/models/search_sort_model.dart';
 import 'package:quiz_app/domain/quiz/usecase/get_list_result_usecase.dart';
 import 'package:quiz_app/presentation/history/pages/result_page.dart';
+import 'package:quiz_app/presentation/history/widgets/result_card.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
@@ -44,16 +45,14 @@ class HistoryPage extends StatelessWidget {
             ..execute(usecase: GetListResultUseCase(), params: ''),
           child: Column(
             children: [
-              Builder(
-                builder: (context) {
-                  return SearchSort(
-                    onSearch: (state) {
-                      onSearch(context, state);
-                    },
-                    type: "history",
-                  );
-                }
-              ),
+              Builder(builder: (context) {
+                return SearchSort(
+                  onSearch: (state) {
+                    onSearch(context, state);
+                  },
+                  type: "history",
+                );
+              }),
               BlocBuilder<GetListResultCubit, GetListResultState>(
                   builder: (BuildContext context, GetListResultState state) {
                 if (state is GetListResultLoading) {
@@ -73,54 +72,12 @@ class HistoryPage extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final result = state.results[index];
                         return GestureDetector(
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    ResultPage(result: result)),
-                          ),
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            elevation: 5,
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(10),
-                              leading: Container(
-                                width: 60,
-                                height: 60,
-                                child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Base64ImageWidget(
-                                      base64String: result.quizId.image,
-                                    )),
-                              ),
-                              title: Text(
-                                result.quizId.name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Score: ${result.score}',
-                                      style: const TextStyle(
-                                          color: Colors.black54)),
-                                  Text(
-                                      'Completion Time: ${AppHelper.formatDuration(result.completeTime)}',
-                                      style: const TextStyle(
-                                          color: Colors.black54)),
-                                  Text('Attempts: ${result.attemptTime}',
-                                      style: const TextStyle(
-                                          color: Colors.black54)),
-                                  Text(
-                                      'Date: ${AppHelper.dateFormat(result.createdAt)}',
-                                      style: const TextStyle(
-                                          color: Colors.black54)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
+                            onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          ResultPage(result: result)),
+                                ),
+                            child: ResultCard(result: result));
                       },
                     ),
                   );

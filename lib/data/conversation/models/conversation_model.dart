@@ -1,10 +1,11 @@
+import 'package:quiz_app/data/conversation/models/message_model.dart';
 import 'package:quiz_app/data/user/model/simple_user_model.dart';
 import 'package:quiz_app/domain/conversation/entity/conversation_entity.dart';
 
 class ConversationModel {
   final String conversationId;
   final SimpleUserModel user;
-  final String lastMessage;
+  final MessageModel lastMessage;
   final String createdAt;
 
   ConversationModel({
@@ -19,7 +20,7 @@ class ConversationModel {
     return ConversationModel(
       conversationId: map['conversationId'] as String,
       user: SimpleUserModel.fromMap(map['user']),
-      lastMessage: map['lastMessage'] as String,
+      lastMessage: MessageModel.fromMap(map['lastMessage']) ,
       createdAt: map['createdAt'] as String,
     );
   }

@@ -24,7 +24,7 @@ class MessageModel {
       conversationId: map['conversationId'] ?? "",
       messageId: map['_id'] ?? "",
       content: map['content'] ?? "",
-      sender: map['senderId'],
+      sender: map['senderId']??"",
       createdAt: map['sentAt'] ?? "",
     );
   }

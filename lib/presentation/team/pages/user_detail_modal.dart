@@ -4,12 +4,16 @@ import 'package:quiz_app/common/bloc/button/button_state.dart';
 import 'package:quiz_app/common/bloc/button/button_state_cubit.dart';
 import 'package:quiz_app/common/bloc/profile/get_profile_cubit.dart';
 import 'package:quiz_app/common/bloc/profile/get_profile_state.dart';
+import 'package:quiz_app/common/bloc/quiz/get_list_quiz_cubit.dart';
+import 'package:quiz_app/common/bloc/quiz/get_list_quiz_state.dart';
 import 'package:quiz_app/common/widgets/build_avatar.dart';
 import 'package:quiz_app/common/widgets/build_base_64_image.dart';
 import 'package:quiz_app/common/widgets/click_user_detail.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
+import 'package:quiz_app/common/widgets/quiz_card.dart';
+import 'package:quiz_app/domain/quiz/usecase/get_hot_quiz_usecase.dart';
 import 'package:quiz_app/domain/user/entity/sample_user_entity.dart';
 import 'package:quiz_app/domain/user/usecase/accept_friend_request_usecase.dart';
 import 'package:quiz_app/domain/user/usecase/add_friend_usecase.dart';
@@ -18,6 +22,15 @@ import 'package:quiz_app/domain/user/usecase/get_friend_usecase.dart';
 import 'package:quiz_app/domain/user/usecase/get_user_detail_usecase.dart';
 import 'package:quiz_app/presentation/friend/bloc/get_friend_cubit.dart';
 import 'package:quiz_app/presentation/friend/bloc/get_friend_state.dart';
+import 'package:quiz_app/presentation/friend/pages/chatting_page.dart';
+import 'package:quiz_app/presentation/profile/page/profile_page.dart';
+import 'package:quiz_app/presentation/quiz/pages/practice_quiz_detail_page.dart';
+
+import '../../../common/bloc/result/get_list_quiz_cubit.dart';
+import '../../../common/bloc/result/get_list_result_state.dart';
+import '../../../core/global_storage.dart';
+import '../../../domain/quiz/usecase/get_list_result_usecase.dart';
+import '../../history/widgets/result_card.dart';
 
 class UserModalPage extends StatelessWidget {
   final String userId;
@@ -26,36 +39,59 @@ class UserModalPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-            create: (_) => GetProfileCubit()
-              ..onGet(useCase: GetUserDetailUseCase(), params: userId)),
-        BlocProvider(create: (_) => ButtonStateCubit()),
-        BlocProvider(
-            create: (_) => GetFriendCubit()
-              ..onGet(useCase: GetFriendUseCase(), params: userId))
-      ],
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("User Profile"),
-          centerTitle: true,
-        ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildStatsCard(),
-              const SizedBox(height: 20),
-              _buildFriendsList(context),
-              const SizedBox(height: 20),
-              _buildTabs(),
-            ],
-          ),
-        ),
-      ),
+    return FutureBuilder(
+      future: GlobalStorage.getUserId(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return CircularProgressIndicator();
+
+        final id = snapshot.data ?? "";
+
+        return userId == id
+            ? ProfilePage()
+            : MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                      create: (_) => GetProfileCubit()
+                        ..onGet(
+                            useCase: GetUserDetailUseCase(), params: userId)),
+                  BlocProvider(create: (_) => ButtonStateCubit()),
+                  BlocProvider(
+                      create: (_) => GetFriendCubit()
+                        ..onGet(useCase: GetFriendUseCase(), params: userId)),
+                  BlocProvider(
+                      create: (_) => GetListQuizCubit()
+                        ..execute(
+                            usecase: GetHotQuizUseCase(),
+                            params: "idCreator=$userId&status=active")),
+                  BlocProvider(
+                    create: (BuildContext context) => GetListResultCubit()
+                      ..execute(
+                          usecase: GetListResultUseCase(),
+                          params: 'idParticipant=$userId'),
+                  )
+                ],
+                child: Scaffold(
+                  appBar: AppBar(
+                    title: const Text("User Profile"),
+                    centerTitle: true,
+                  ),
+                  body: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildStatsCard(),
+                        const SizedBox(height: 20),
+                        _buildFriendsList(context),
+                        const SizedBox(height: 20),
+                        _buildTabs(),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+      },
     );
   }
 
@@ -90,16 +126,15 @@ class UserModalPage extends StatelessWidget {
                     Column(
                       children: [
                         Container(
-                          height: 90,
+                            height: 90,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(60)
-                            ),
+                                borderRadius: BorderRadius.circular(60)),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(60),
-                          child: Base64ImageWidget(
-                            base64String: state.user.avatar,
-                          ),
-                        )),
+                              child: Base64ImageWidget(
+                                base64String: state.user.avatar,
+                              ),
+                            )),
                         Text(state.user.email,
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
@@ -118,7 +153,11 @@ class UserModalPage extends StatelessWidget {
                     switch (state.user.friendshipStatus) {
                       'friends' => OutlinedButton.icon(
                           onPressed: () {
-                            // Mở màn chat
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      ChattingPage(user: SimpleUserEntity(id: state.user.id, email: state.user.email, avatar: state.user.avatar))),
+                            );
                           },
                           icon: const Icon(Icons.chat, color: Colors.blue),
                           label: const Text("Message"),
@@ -252,7 +291,7 @@ class UserModalPage extends StatelessWidget {
 
                 // GridView hiển thị bạn bè
                 SizedBox(
-                  height: state.users.length > 8 ?100:200,
+                  height: state.users.length > 8 ? 100 : 200,
                   child: GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -282,8 +321,8 @@ class UserModalPage extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               state.users[index].email,
-                              maxLines:1,
-                              overflow:TextOverflow.ellipsis,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                   fontSize: 12, fontWeight: FontWeight.w500),
                               textAlign: TextAlign.center,
@@ -304,11 +343,11 @@ class UserModalPage extends StatelessWidget {
   }
 
   Widget _buildTabs() {
-    return const DefaultTabController(
+    return DefaultTabController(
       length: 2,
       child: Column(
         children: [
-          TabBar(
+          const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.history), text: "Recent Activities"),
               Tab(icon: Icon(Icons.create), text: "My Quizzes"),
@@ -318,11 +357,67 @@ class UserModalPage extends StatelessWidget {
             height: 300,
             child: TabBarView(
               children: [
-                Center(
-                    child: Text("Recent activities will be displayed here.")),
-                Center(
-                    child:
-                        Text("Your created quizzes will be displayed here.")),
+                BlocBuilder<GetListResultCubit, GetListResultState>(
+                    builder: (BuildContext context, GetListResultState state) {
+                  if (state is GetListResultLoading) {
+                    return const GetLoading();
+                  }
+                  if (state is GetListResultFailure) {
+                    return GetFailure(name: state.error);
+                  }
+                  if (state is GetListResultSuccess) {
+                    if (state.results.isEmpty) {
+                      return Center(child: Text("Not found any history"));
+                    }
+                    return
+                       ListView.builder(
+                        padding: const EdgeInsets.all(10),
+                        itemCount: state.results.length,
+                        itemBuilder: (context, index) {
+                          final result = state.results[index];
+                          return GestureDetector(
+                              onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            PracticeQuizDetailPage(
+                                                quizId: result.quizId.id)),
+                                  ),
+                              child: ResultCard(result: result));
+                        },
+
+                    );
+                  }
+                  return const GetSomethingWrong();
+                }),
+                BlocBuilder<GetListQuizCubit, GetListQuizState>(
+                  builder: (BuildContext context, GetListQuizState state) {
+                    if (state is GetListQuizLoading) {
+                      return GetLoading();
+                    }
+                    if (state is GetListQuizFailure) {
+                      return GetFailure(name: state.error);
+                    }
+                    if (state is GetListQuizSuccess) {
+                      return ListView.builder(
+                          itemCount: state.quizzes.length,
+                          itemBuilder: (context, index) {
+                            return QuizCard(
+                                onClick: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            PracticeQuizDetailPage(
+                                                quizId:
+                                                    state.quizzes[index].id)),
+                                  );
+                                },
+                                isYour: false,
+                                quiz: state.quizzes[index]);
+                          });
+                    }
+                    return GetSomethingWrong();
+                  },
+                ),
               ],
             ),
           ),

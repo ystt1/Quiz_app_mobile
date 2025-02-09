@@ -134,7 +134,7 @@ class _CreatePostModalState extends State<CreatePostModal> {
                         return Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              context.read<ButtonStateCubit>().execute(usecase: AddPostUseCase(),params: PostPayloadModel(content:_postController.text,team: widget.team.id,image: _selectedImage));
+                              context.read<ButtonStateCubit>().execute(usecase: AddPostUseCase(),params: PostPayloadModel(content:_postController.text,team: widget.team.id,image: _selectedImage,quiz: ''));
 
                             },
                             style: ElevatedButton.styleFrom(
