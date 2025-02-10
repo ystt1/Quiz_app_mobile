@@ -21,7 +21,6 @@ class ConversationServiceImp extends ConversationService {
       final response = await apiService.get(
         '$url/conversation',
       );
-      print(response.body);
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body)["data"];
         final results =
@@ -32,7 +31,6 @@ class ConversationServiceImp extends ConversationService {
       return Left((jsonDecode(response.body)["message"]["message"]) ??
           "Some thing went wrong");
     } catch (e) {
-      print(e.toString());
       return Left(e.toString());
     }
   }
@@ -51,10 +49,10 @@ class ConversationServiceImp extends ConversationService {
         return Right(results);
       }
       ;
-      return Left((jsonDecode(response.body)["message"]["message"]) ??
+      return Left((jsonDecode(response.body)["message"]) ??
           "Some thing went wrong");
     } catch (e) {
-      print(e.toString());
+
       return Left(e.toString());
     }
   }

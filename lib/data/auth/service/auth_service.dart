@@ -7,6 +7,8 @@ import 'package:quiz_app/core/constant/url.dart';
 import 'package:quiz_app/data/auth/models/login_payload.dart';
 import 'package:quiz_app/data/auth/models/register_payload.dart';
 import 'package:quiz_app/data/auth/models/token_get_model.dart';
+import 'package:quiz_app/data/user/service/user_service.dart';
+import 'package:quiz_app/service_locator.dart';
 
 abstract class AuthService {
   Future<Either> login(LoginPayLoad user);

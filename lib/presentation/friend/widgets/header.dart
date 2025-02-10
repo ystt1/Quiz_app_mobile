@@ -5,6 +5,9 @@ import 'package:quiz_app/common/widgets/qr_page.dart';
 import 'package:quiz_app/domain/user/entity/sample_user_entity.dart';
 import 'package:quiz_app/presentation/friend/widgets/show_friend_request.dart';
 
+import '../../../domain/user/usecase/get_friend_request_usecase.dart';
+import '../bloc/get_friend_request_cubit.dart';
+
 class AppBarHeaderFriendPage extends StatefulWidget {
   final List<SimpleUserEntity> friendRequest;
   final TabController tabController;
@@ -44,13 +47,16 @@ class _AppBarHeaderFriendPageState extends State<AppBarHeaderFriendPage> {
       actions: [
         IconButton(
           icon: const Icon(Icons.search),
-          onPressed: () {}, // Chưa implement tìm kiếm user
+          onPressed: () {
+            context.read<GetFriendRequestCubit>().onGet(useCase: GetFriendRequestUseCase());
+          },
         ),
         Stack(
           children: [
             IconButton(
               icon: const Icon(Icons.person_add),
               onPressed: () {
+
                 widget.friendRequest.isNotEmpty
                     ? _showFriendRequests(context)
                     : {};

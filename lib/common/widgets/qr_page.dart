@@ -75,10 +75,10 @@ class _ScanQrPageState extends State<ScanQrPage> {
         if (mounted) {
           if(widget.onSearch!=null)
             {
-              print(scanData.code);
+
               widget.onSearch!(scanData.code!);
 
-             print("abc");
+
               Navigator.of(context).pop();
               controller.pauseCamera();
               controller.dispose();

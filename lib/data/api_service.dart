@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:quiz_app/core/constant/url.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../common/bloc/token_cubit.dart';
+import '../service_locator.dart';
+
 class ApiService {
   final TokenService _tokenService;
 
@@ -108,8 +111,10 @@ class ApiService {
 
   Future<bool> _refreshToken() async {
     final refreshToken = await _tokenService.getRefreshToken();
-    if (refreshToken == null) return false;
-
+    if (refreshToken == null) {
+      final tokenCubit = sl<TokenCubit>();
+      tokenCubit.logout();
+    };
     try {
       final response = await http.post(
         Uri.parse('$url/user/refresh-token'),

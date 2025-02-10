@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_app/core/constant/app_color.dart';
 import 'package:quiz_app/data/quiz/models/practice_payload.dart';
 import 'package:quiz_app/domain/question/entity/basic_question_entity.dart';
 
@@ -26,12 +27,20 @@ class _FillInTheBlankState extends State<FillInTheBlank> {
   @override
   void initState() {
     super.initState();
+
+    /// Đảm bảo danh sách userAnswers có đủ số lượng phần tử
+    while (widget.result.userAnswers.length <= widget.index) {
+      widget.result.userAnswers.add([]);
+    }
+    while (widget.result.userAnswers[widget.index].length < widget.question.answers.length) {
+      widget.result.userAnswers[widget.index].add('');
+    }
+
+    /// Khởi tạo danh sách TextEditingController
     controllers = List.generate(
       widget.question.answers.length,
           (i) => TextEditingController(
-        text: widget.result.userAnswers[widget.index].length > i
-            ? widget.result.userAnswers[widget.index][i]
-            : '',
+        text: widget.result.userAnswers[widget.index][i],
       ),
     );
   }
@@ -49,11 +58,7 @@ class _FillInTheBlankState extends State<FillInTheBlank> {
         .map((list) => List<String>.from(list))
         .toList();
 
-    if (updatedUserAnswers[widget.index].length > blankIndex) {
-      updatedUserAnswers[widget.index][blankIndex] = value;
-    } else {
-      updatedUserAnswers[widget.index].add(value);
-    }
+    updatedUserAnswers[widget.index][blankIndex] = value;
 
     var updatedResult = PracticePayloadModel(
       userAnswers: updatedUserAnswers,
@@ -70,8 +75,9 @@ class _FillInTheBlankState extends State<FillInTheBlank> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Text.rich(
-        TextSpan(
+      child: RichText(
+        text: TextSpan(
+          style: TextStyle(fontSize: 18, color: AppColors.textColor),
           children: widget.question.content
               .split('___')
               .asMap()
@@ -81,40 +87,30 @@ class _FillInTheBlankState extends State<FillInTheBlank> {
             final text = entry.value;
 
             return [
-              TextSpan(
-                text: text,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black87,
-                ),
-              ),
+              TextSpan(text: text),
               if (blankIndex < widget.question.answers.length)
                 WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.circular(8),
-                        color: Colors.white,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: TextField(
-                          controller: controllers[blankIndex],
-                          onChanged: (value) => _updateAnswer(blankIndex, value),
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Fill in the blank',
-                            hintStyle: TextStyle(
-                              color: Colors.grey[600],
-                            ),
+                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                    child: SizedBox(
+                      width: 100,
+                      child: TextField(
+                        controller: controllers[blankIndex],
+                        onChanged: (value) => _updateAnswer(blankIndex, value),
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
                           ),
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.black,
-                          ),
+                          hintText: '...',
+                          hintStyle: const TextStyle(color: Colors.grey),
                         ),
+                        style: const TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ),
                   ),

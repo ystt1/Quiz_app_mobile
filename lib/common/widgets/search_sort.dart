@@ -14,6 +14,7 @@ class SearchSort extends StatefulWidget {
 
 class _SearchSortState extends State<SearchSort> {
   bool _isSearchOpen = false;
+  final TextEditingController _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -21,101 +22,99 @@ class _SearchSortState extends State<SearchSort> {
       providers: [BlocProvider(create: (context) => SearchSortCubit())],
       child: BlocConsumer<SearchSortCubit, SearchAndSortModel>(
         listener: (context, state) {
-          print(state);
           widget.onSearch(state);
         },
         builder: (BuildContext context, state) {
           return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: _isSearchOpen ? 300 : 48,
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(_isSearchOpen ? Icons.close : Icons.search),
-                        onPressed: () {
-                          setState(() {
-                            _isSearchOpen = !_isSearchOpen;
-                          });
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: _isSearchOpen ? 300 : 48,
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(_isSearchOpen ? Icons.close : Icons.search),
+                      onPressed: () {
+                        setState(() => _isSearchOpen = !_isSearchOpen);
+                        if (!_isSearchOpen) {
+                          _controller.clear();
                           context.read<SearchSortCubit>().clearText();
-                        },
-                      ),
-                      if (_isSearchOpen)
-                        Expanded(
-                          child: TextField(
-                            onChanged: (value) {
-                              context.read<SearchSortCubit>().onGet(
-                                  SearchAndSortModel(
-                                      name: value,
-                                      sortField: state.sortField,
-                                      direction: state.direction));
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Search...',
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    const BorderSide(color: Colors.grey),
-                              ),
+                        }
+                      },
+                    ),
+                    if (_isSearchOpen)
+                      Expanded(
+                        child: TextField(
+                          controller: _controller,
+                          decoration: InputDecoration(
+                            hintText: 'Search...',
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: const BorderSide(color: Colors.grey),
                             ),
-                            onSubmitted: (value) {
-                              // Handle search on Enter
-
-                              setState(() {
-                                _isSearchOpen = false;
-                              });
-                            },
                           ),
+                          onSubmitted: (value) {
+                            if (value.isNotEmpty) {
+                              context.read<SearchSortCubit>().onGet(
+                                SearchAndSortModel(
+                                    name: value,
+                                    sortField: state.sortField,
+                                    direction: state.direction),
+                              );
+                            } else {
+                              setState(() => _isSearchOpen = false);
+                            }
+                          },
                         ),
-                    ],
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    final newDirection = (value == state.sortField)
-                        ? (state.direction == 'desc' ? 'asc' : 'desc')
-                        : 'desc';
-                    print("Sort Field Selected: $value, New Direction: $newDirection");
-                    context.read<SearchSortCubit>().onGet(SearchAndSortModel(
-                      name: state.name,
-                      sortField: value,
-                      direction: newDirection,
-                    ));
-                  },
-
-                  itemBuilder: (BuildContext context) => [
-                    PopupMenuItem(
-                      value: widget.type == null ? 'name' : 'best',
-                      child: ListTile(
-                        leading: state.sortField == (widget.type == null ? 'name' : 'best')
-                            ? (state.direction == "asc"
-                            ? const Icon(Icons.arrow_upward)
-                            : const Icon(Icons.arrow_downward))
-                            : null,
-                        title: Text(widget.type == null ? 'Name' : "Best"),
                       ),
-                    ),
-
-                    PopupMenuItem(
-                      value: 'createdAt',
-                      child: ListTile(
-                        leading: state.sortField == "createdAt"
-                            ? (state.direction == "asc"
-                                ? const Icon(Icons.arrow_upward)
-                                : const Icon(Icons.arrow_downward))
-                            : null,
-                        title: const Text('Date Create'),
-                      ),
-                    ),
                   ],
-                  icon: const Icon(Icons.sort),
                 ),
-              ]);
+              ),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  final newDirection = (value == state.sortField)
+                      ? (state.direction == 'desc' ? 'asc' : 'desc')
+                      : 'desc';
+                  context.read<SearchSortCubit>().onGet(SearchAndSortModel(
+                    name: state.name,
+                    sortField: value,
+                    direction: newDirection,
+                  ));
+                },
+                itemBuilder: (BuildContext context) => [
+                  _buildMenuItem(
+                      value: widget.type == null ? 'name' : 'best',
+                      title: widget.type == null ? 'Name' : "Best",
+                      state: state),
+                  _buildMenuItem(
+                      value: 'createdAt', title: 'Date Create', state: state),
+                ],
+                icon: const Icon(Icons.sort),
+              ),
+            ],
+          );
         },
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildMenuItem({
+    required String value,
+    required String title,
+    required SearchAndSortModel state,
+  }) {
+    return PopupMenuItem(
+      value: value,
+      child: ListTile(
+        leading: state.sortField == value
+            ? Icon(state.direction == "desc"
+            ? Icons.arrow_upward
+            : Icons.arrow_downward)
+            : null,
+        title: Text(title),
       ),
     );
   }

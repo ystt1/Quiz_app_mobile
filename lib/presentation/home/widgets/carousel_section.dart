@@ -15,9 +15,7 @@ class CarouselSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (BuildContext context) =>GetListQuizCubit()..execute(usecase: GetHotQuizUseCase(),params: "filterType=hot"),
-      child: Container(
+    return Container(
         padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -47,7 +45,7 @@ class CarouselSection extends StatelessWidget {
             ),
           ],
         ),
-      ),
+
     );
   }
 }

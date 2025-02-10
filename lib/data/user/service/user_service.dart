@@ -52,11 +52,11 @@ class UserServiceImp extends UserService {
   @override
   Future<Either> changeProfile(ChangeProfilePayLoadModel profile) async {
     try {
-      print("abc");
+
       final apiService = sl<ApiService>();
       final response = await apiService.put(
           '$url/user/change-profile', profile.toMap());
-      print(response.statusCode);
+
       if (response.statusCode == 200) {
         return const Right(true);
       }
@@ -72,7 +72,6 @@ class UserServiceImp extends UserService {
       final apiService = sl<ApiService>();
       final response = await apiService.post(
           '$url/friend',{'recipientId':id});
-      print(response.statusCode);
       if (response.statusCode == 200) {
         return const Right(true);
       }
@@ -133,7 +132,7 @@ class UserServiceImp extends UserService {
     try {
       final apiService = sl<ApiService>();
       final response = await apiService.get('$url/friend/friends${id!=""?"?idUser=$id":""}',);
-      print(response.body);
+
       if(response.statusCode==200)
       {
         final List<dynamic> data = jsonDecode(response.body)["data"];
@@ -142,7 +141,7 @@ class UserServiceImp extends UserService {
       };
       return Left((jsonDecode(response.body)["message"])??"Some thing went wrong");
     } catch (e) {
-      print(e.toString());
+
       return Left(e.toString());
     }
 
@@ -163,7 +162,6 @@ class UserServiceImp extends UserService {
       };
       return Left((jsonDecode(response.body)["message"])??"Some thing went wrong");
     } catch (e) {
-      print(e.toString());
       return Left(e.toString());
     }
   }

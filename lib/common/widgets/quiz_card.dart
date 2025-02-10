@@ -162,7 +162,6 @@ class QuizCard extends StatelessWidget {
                               context.read<ButtonStateCubit2>().execute(usecase: DeleteQuizUseCase(),params: quiz.id);
                               break;
                             default:
-                              print("wrong type");
                               break;
                           }
                         },

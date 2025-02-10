@@ -26,7 +26,7 @@ class PostServiceImp extends PostService{
   @override
   Future<Either> addCommentService(CommentPayloadModal comment) async {
     try {
-      print(comment.toMap());
+
       final apiService = sl<ApiService>();
       final response = await apiService
           .post('$url/comment', comment.toMap());

@@ -23,18 +23,19 @@ class GetListConversationCubit extends Cubit<GetListConversationState> {
       }, (data) async {
         conversation.clear();
         conversation.addAll(data);
-        emit(GetListConversationSuccess(conversations: data));
+        conversation=conversation.reversed.toList();
+        emit(GetListConversationSuccess(conversations: conversation));
         final socket = await _socketService.socket;
         socket.emit("joinUserRoom",await GlobalStorage.getUserId());
         if (!socket.hasListeners('updateConversationList')) {
           socket.on('updateConversationList', (data) {
+
             final entity= ConversationModel.fromMap(data).toEntity();
             int index = conversation.indexWhere((c) => c.conversationId == entity.conversationId);
             if (index != -1) {
-              conversation[index] = entity;
-            } else {
-              conversation.insert(0, entity);
+              conversation.removeAt(index);
             }
+            conversation.insert(0, entity);
             emit(GetListConversationSuccess(conversations: conversation));
           });
         }

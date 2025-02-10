@@ -7,7 +7,6 @@ import 'package:quiz_app/service_locator.dart';
 class GetListPostUseCase implements UseCase<Either,String> {
   @override
   Future<Either> call({String? params}) async {
-    print(params);
     return await sl<PostRepository>().getPost(params!);
   }
 

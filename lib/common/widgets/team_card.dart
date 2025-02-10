@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quiz_app/common/bloc/button/button_state.dart';
 import 'package:quiz_app/common/bloc/button/button_state_cubit.dart';
+import 'package:quiz_app/common/helper/app_helper.dart';
 import 'package:quiz_app/common/widgets/build_base_64_image.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
@@ -164,9 +165,9 @@ class TeamCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Owner: ${team.idHost}'),
-              Text('Max Members: ${team.maxParticipant}'),
-              Text('Created At: ${team.createdAt}'),
+              Text('Owner: ${team.idHost.email}'),
+              Text('Members:${team.memberCount}/ ${team.maxParticipant}'),
+              Text('Created At: ${AppHelper.dateFormat(team.createdAt)}'),
             ],
           ),
           actions: [

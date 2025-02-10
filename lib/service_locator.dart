@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:quiz_app/common/bloc/token_cubit.dart';
 import 'package:quiz_app/core/constant/socket_service.dart';
 import 'package:quiz_app/data/auth/repository_imp/auth_repository_imp.dart';
 import 'package:quiz_app/data/auth/service/auth_service.dart';
@@ -136,9 +137,11 @@ Future<void> initializeDependencies() async {
   sl.registerFactory(() => ApiService(sl<TokenService>()));
 
   //conversation
-  sl.registerSingleton<SocketService>(SocketService());
+  //sl.registerSingleton<SocketService>(SocketService());
+  sl.registerLazySingleton(() => SocketService(sl<TokenService>()));
 
 
   sl.registerSingleton<GetListConversationUseCase>(GetListConversationUseCase());
   sl.registerSingleton<GetMessageUseCase>(GetMessageUseCase());
+  sl.registerFactory<TokenCubit>(() => TokenCubit(sl<TokenService>()));
 }

@@ -17,6 +17,7 @@ import 'package:quiz_app/presentation/friend/widgets/conversation_tab.dart';
 import 'package:quiz_app/presentation/friend/widgets/friend_list_tab.dart';
 import 'package:quiz_app/presentation/friend/widgets/header.dart';
 
+import '../../../common/widgets/center_text.dart';
 import '../../../domain/user/usecase/get_friend_usecase.dart';
 
 class FriendsPage extends StatefulWidget {
@@ -29,28 +30,6 @@ class _FriendsPageState extends State<FriendsPage>
   late TabController _tabController = TabController(length: 2, vsync: this);
 
 
-  List<Map<String, String>> friends = [
-    {
-      'name': 'John Doe',
-      'avatar': 'https://via.placeholder.com/50',
-      'lastMessage': 'Hey, how are you?'
-    },
-    {
-      'name': 'Jane Smith',
-      'avatar': 'https://via.placeholder.com/50',
-      'lastMessage': 'See you soon!'
-    },
-    {
-      'name': 'Mike Johnson',
-      'avatar': 'https://via.placeholder.com/50',
-      'lastMessage': 'Let’s catch up later!'
-    },
-  ];
-
-  List<Map<String, String>> friendRequests = [
-    {'name': 'Alice Brown', 'avatar': 'https://via.placeholder.com/50'},
-    {'name': 'Bob Green', 'avatar': 'https://via.placeholder.com/50'},
-  ];
 
   @override
   void initState() {
@@ -71,74 +50,90 @@ class _FriendsPageState extends State<FriendsPage>
           BlocProvider(
               create: (_) => ButtonStateCubit()
                 ),
-          BlocProvider(create: (_)=>GetListConversationCubit()..onGet(usecase: GetListConversationUseCase()))
+
         ],
-        child: Scaffold(
-          appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(120),
-            child: BlocConsumer<GetFriendRequestCubit, GetFriendRequestState>(
-              builder: (BuildContext context, GetFriendRequestState state) {
-                if (state is GetFriendRequestSuccess) {
-                  return AppBarHeaderFriendPage(
-                    friendRequest: state.users,
-                    tabController: _tabController,
-                  );
-                }
-                return GetLoading();
-              },
-              listener: (BuildContext context, GetFriendRequestState state) {
-                if (state is GetFriendRequestFailure) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: GetFailure(name: state.error)));
-                }
-              },
-            ),
-          ),
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              BlocBuilder<GetListConversationCubit,GetListConversationState>(
-                builder: (BuildContext context, GetListConversationState state) {
-                  if(state is GetListConversationLoading)
-                    {
-                      return GetLoading();
-                    }
-                  if(state is GetListConversationFailure)
-                    {
-                      return GetFailure(name: state.error);
-                    }
-                  if(state is GetListConversationSuccess)
-                    {
-                      return ConversationTab(conversations: state.conversations,);
-                    }
-                  return GetSomethingWrong();
+        
+          child: Scaffold(
+            appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(120),
+              child: BlocConsumer<GetFriendRequestCubit, GetFriendRequestState>(
+                builder: (BuildContext context, GetFriendRequestState state) {
+                  if (state is GetFriendRequestSuccess) {
+                    return AppBarHeaderFriendPage(
+                      friendRequest: state.users,
+                      tabController: _tabController,
+                    );
+                  }
+                  return GetLoading();
+                },
+                listener: (BuildContext context, GetFriendRequestState state) {
+                  if (state is GetFriendRequestFailure) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: GetFailure(name: state.error)));
+                  }
                 },
               ),
+            ),
+            body: RefreshIndicator(
 
-
-              Builder(
-                builder: (context) {
-                  return BlocBuilder<GetFriendCubit,GetFriendState>(builder: (BuildContext context, state) {
-                    if(state is GetFriendLoading)
-                      {
-                        return GetLoading();
-                      }
-                    if(state is GetFriendFailure)
-                      {
-
-                        return GetFailure(name: state.error);
-                      }
-                    if(state is GetFriendSuccess)
-                      {
-                        return FriendListTab(friends: state.users);
-                      }
-                    return GetSomethingWrong();
-                  },
-                  );
-                }
-              )
-            ],
-          ),
+              onRefresh: ()async {
+                context.read<GetFriendRequestCubit>().onGet(useCase: GetFriendRequestUseCase());
+              },
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  BlocBuilder<GetListConversationCubit,GetListConversationState>(
+                    builder: (BuildContext context, GetListConversationState state) {
+                      if(state is GetListConversationLoading)
+                        {
+                          return GetLoading();
+                        }
+                      if(state is GetListConversationFailure)
+                        {
+                          return GetFailure(name: state.error);
+                        }
+                      if(state is GetListConversationSuccess)
+                        {
+                          if(state.conversations.isEmpty)
+                          {
+                            return const CenterText(text: "You don't have any conversation yet");
+                          }
+                          return ConversationTab(conversations: state.conversations,);
+                        }
+                      return GetSomethingWrong();
+                    },
+                  ),
+              
+              
+                  Builder(
+                    builder: (context) {
+                      return BlocBuilder<GetFriendCubit,GetFriendState>(builder: (BuildContext context, state) {
+                        if(state is GetFriendLoading)
+                          {
+                            return GetLoading();
+                          }
+                        if(state is GetFriendFailure)
+                          {
+              
+                            return GetFailure(name: state.error);
+                          }
+                        if(state is GetFriendSuccess)
+                          {
+                            if(state.users.isEmpty)
+                            {
+                              return const CenterText(text: "Not found any friend");
+                            }
+                            return FriendListTab(friends: state.users);
+                          }
+                        return GetSomethingWrong();
+                      },
+                      );
+                    }
+                  )
+                ],
+              ),
+            ),
+        
         ));
   }
 }

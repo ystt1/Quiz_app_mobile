@@ -69,6 +69,9 @@ class GetProfileCubit extends Cubit<GetProfileState> {
         case 'request_sent':
           status = 'none';
           break;
+        case 'request_received':
+          status = 'none';
+          break;
         default:
           break;
       }

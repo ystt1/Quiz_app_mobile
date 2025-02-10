@@ -6,6 +6,10 @@ class SearchSortCubit extends Cubit<SearchAndSortModel> {
       : super(SearchAndSortModel(name: '', sortField: "", direction: "desc"));
 
   onGet(SearchAndSortModel searchSort) {
+    if (searchSort.name == state.name &&
+        searchSort.sortField == state.sortField &&
+        searchSort.direction == state.direction) return;
+
     emit(SearchAndSortModel(
       name: searchSort.name,
       sortField: searchSort.sortField.isNotEmpty ? searchSort.sortField : state.sortField,
@@ -14,6 +18,8 @@ class SearchSortCubit extends Cubit<SearchAndSortModel> {
   }
 
   clearText() {
+    if (state.name.isEmpty) return;
+
     emit(SearchAndSortModel(
       name: '',
       sortField: state.sortField,
@@ -21,4 +27,3 @@ class SearchSortCubit extends Cubit<SearchAndSortModel> {
     ));
   }
 }
-

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quiz_app/common/bloc/conversation/get_list_conversation_cubit.dart';
 import 'package:quiz_app/common/bloc/token_state.dart';
 import 'package:quiz_app/core/constant/app_theme.dart';
+import 'package:quiz_app/domain/conversation/usecase/get_list_conversation_usecase.dart';
 import 'package:quiz_app/presentation/auth/pages/login_page.dart';
 import 'package:quiz_app/presentation/home/pages/home_page.dart';
 import 'package:quiz_app/service_locator.dart';
@@ -16,9 +18,15 @@ Future<void> main() async {
   final tokenService = TokenService();
 
   runApp(
-    BlocProvider(
-      create: (_) => TokenCubit(tokenService)..initialize(),
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(
+        create: (_) => TokenCubit(tokenService)..initialize(),),
+        BlocProvider(
+          create: (_) => GetListConversationCubit(),)
+      ],
       child: const MyApp(),
+
     ),
   );
 }
@@ -110,6 +118,7 @@ class _MyAppState extends State<MyApp> {
             return const LoginPage();
           }
           if (state is TokenSuccess) {
+            context.read<GetListConversationCubit>().onGet(usecase: GetListConversationUseCase());
             return const HomePage();
           }
           return const LoginPage();

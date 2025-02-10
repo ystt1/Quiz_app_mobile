@@ -10,11 +10,16 @@ import 'package:quiz_app/domain/quiz/usecase/get_recent_quiz_usecase.dart';
 import 'package:quiz_app/presentation/home/widgets/carousel_section.dart';
 import 'package:quiz_app/presentation/home/widgets/header.dart';
 import 'package:quiz_app/presentation/home/widgets/section_header.dart';
+import '../../../common/bloc/quiz/get_list_quiz_cubit_2.dart';
+import '../../../common/bloc/quiz/get_list_quiz_cubit_3.dart';
+import '../../../common/bloc/quiz/get_list_quiz_state_2.dart';
+import '../../../common/bloc/quiz/get_list_quiz_state_3.dart';
 import '../../../common/widgets/big_quiz_card.dart';
 import '../../../common/widgets/get_loading.dart';
 import '../../../common/widgets/get_failure.dart';
 import '../../../common/widgets/get_something_wrong.dart';
 import '../../../domain/quiz/entity/basic_quiz_entity.dart';
+import '../../../domain/quiz/usecase/get_hot_quiz_usecase.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -29,54 +34,70 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (BuildContext context) =>GetUserDetailCubit()..onGet("")
-,
-      child: Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: Colors.white,
-          title: const Header(),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CarouselSection(),
-                const SizedBox(height: 12),
-                const Divider(),
-                const SizedBox(height: 12),
-                _recentSection(),
-                const SizedBox(height: 12),
-                const Divider(),
-                const SizedBox(height: 12),
-                _newestSection(),
-              ],
-            ),
-          ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_)=>GetListQuizCubit()..execute(usecase: GetHotQuizUseCase(),params: "filterType=hot")),
+        BlocProvider(create: (_)=>GetListQuizCubit2()..execute(usecase: GetNewestQuizUseCase())),
+        BlocProvider(create: (_)=>GetListQuizCubit3()..execute(usecase: GetRecentQuizUseCase())),
+      ],
+      child: BlocProvider(
+        create: (BuildContext context) =>GetUserDetailCubit()..onGet("")
+      ,
+        child: Builder(
+          builder: (context) {
+            return RefreshIndicator(
+              onRefresh: () async{
+                context.read<GetListQuizCubit>()..execute(usecase: GetHotQuizUseCase(),params: "filterType=hot");
+                context.read<GetListQuizCubit2>()..execute(usecase: GetNewestQuizUseCase());
+                context.read<GetListQuizCubit3>()..execute(usecase: GetRecentQuizUseCase());
+              },
+              child: Scaffold(
+                appBar: AppBar(
+                  elevation: 0,
+                  backgroundColor: Colors.white,
+                  title: const Header(),
+                ),
+                body: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CarouselSection(),
+                        const SizedBox(height: 12),
+                        const Divider(),
+                        const SizedBox(height: 12),
+                        _recentSection(),
+                        const SizedBox(height: 12),
+                        const Divider(),
+                        const SizedBox(height: 12),
+                        _newestSection(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
         ),
       ),
     );
   }
 
   Widget _recentSection() {
-    return BlocProvider(
-      create: (BuildContext context) =>
-          GetListQuizCubit()..execute(usecase: GetRecentQuizUseCase()),
-      child: Column(
+    return
+       Column(
         children: [
           const SectionHeader(title: "Recent"),
-          BlocBuilder<GetListQuizCubit, GetListQuizState>(
-            builder: (BuildContext context, GetListQuizState state) {
-              if (state is GetListQuizLoading) {
+          BlocBuilder<GetListQuizCubit2, GetListQuizState2>(
+            builder: (BuildContext context, GetListQuizState2 state) {
+              if (state is GetListQuizLoading2) {
                 return const GetLoading();
               }
-              if (state is GetListQuizFailure) {
+              if (state is GetListQuizFailure2) {
                 return GetFailure(name: state.error);
               }
-              if (state is GetListQuizSuccess) {
+              if (state is GetListQuizSuccess2) {
                 return Column(
                   children: [
                     SizedBox(
@@ -108,26 +129,23 @@ class _HomeTabState extends State<HomeTab> {
             },
           ),
         ],
-      ),
+
     );
   }
 
   Widget _newestSection() {
-    return BlocProvider(
-      create: (BuildContext context) =>
-          GetListQuizCubit()..execute(usecase: GetNewestQuizUseCase()),
-      child: Column(
+    return Column(
         children: [
           const SectionHeader(title: "Newest"),
-          BlocBuilder<GetListQuizCubit, GetListQuizState>(
-            builder: (BuildContext context, GetListQuizState state) {
-              if (state is GetListQuizLoading) {
+          BlocBuilder<GetListQuizCubit3, GetListQuizState3>(
+            builder: (BuildContext context, GetListQuizState3 state) {
+              if (state is GetListQuizLoading3) {
                 return const GetLoading();
               }
-              if (state is GetListQuizFailure) {
+              if (state is GetListQuizFailure3) {
                 return GetFailure(name: state.error);
               }
-              if (state is GetListQuizSuccess) {
+              if (state is GetListQuizSuccess3) {
                 return Column(
                   children: [
                     SizedBox(
@@ -159,7 +177,7 @@ class _HomeTabState extends State<HomeTab> {
             },
           ),
         ],
-      ),
+
     );
   }
 

@@ -26,24 +26,33 @@ class SelectedMany extends StatelessWidget {
           children: [
             Checkbox(
               value: isSelected,
-              onChanged: (bool? selected) {
-                var updatedUserAnswers = result.userAnswers.map((list) => List<String>.from(list)).toList();
+                onChanged: (bool? selected) {
+                  var updatedUserAnswers = result.userAnswers.map((list) => List<String>.from(list)).toList();
 
-                if (selected == true) {
-                  updatedUserAnswers[index].add(answer.content);
-                } else {
-                  updatedUserAnswers[index].remove(answer.content);
+                  if (selected == true) {
+                    if (!updatedUserAnswers[index].contains(answer.content)) {
+                      updatedUserAnswers[index].add(answer.content);
+                    }
+                  } else {
+                    updatedUserAnswers[index].remove(answer.content);
+                  }
+
+                  updatedUserAnswers[index] = updatedUserAnswers[index].where((ans) => ans.isNotEmpty).toList();
+                  if (updatedUserAnswers[index].isEmpty) {
+                    updatedUserAnswers[index] = [""];
+                  }
+                  var updatedResult = PracticePayloadModel(
+                    userAnswers: updatedUserAnswers,
+                    status: result.status,
+                    completeTime: result.completeTime,
+                    quizId: result.quizId,
+                    questions: result.questions,
+                  );
+
+                  onChange(updatedResult);
                 }
 
-                var updatedResult = PracticePayloadModel(
-                  userAnswers: updatedUserAnswers,
-                  status: result.status,
-                  completeTime: result.completeTime,
-                    quizId: result.quizId, questions: result.questions
-                );
 
-                onChange(updatedResult);
-              },
             ),
             Expanded(child: Text(answer.content)),
           ],

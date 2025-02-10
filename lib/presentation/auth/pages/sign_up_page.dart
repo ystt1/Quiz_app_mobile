@@ -64,47 +64,52 @@ class _SignUpPageState extends State<SignUpPage> {
                   SnackBar(content: GetFailure(name: state.errorMessage)));
             }
             if (state is ButtonSuccessState) {
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(const SnackBar(content: Text("Register success")));
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Register success")));
+              Navigator.of(context).pop();
             }
           },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _titlePage(),
-                const Spacer(),
-                _emailText(),
-                const SizedBox(height: 8),
-                _emailField(),
-                const SizedBox(height: 16),
-                _fullNameText(),
-                const SizedBox(height: 8),
-                _fullNameField(),
-                const SizedBox(height: 16),
-                _passwordText(),
-                const SizedBox(height: 8),
-                _passwordField(),
-                const SizedBox(height: 16),
-                _rePasswordText(),
-                const SizedBox(height: 8),
-                _rePasswordField(),
-                const SizedBox(height: 24),
-                _signUpButton(),
-                const SizedBox(height: 24),
-                Center(child: _signUpText()),
-                const SizedBox(height: 32),
-                const Divider(color: AppColors.primaryColor),
-                const SizedBox(height: 16),
-                _orLoginWithText(),
-                const SizedBox(height: 16),
-                _listIcon(),
-              ],
-            ),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  reverse: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _titlePage(),
+                      //const Expanded(child: SizedBox()),
+                      _emailText(),
+                      const SizedBox(height: 8),
+                      _emailField(),
+                      const SizedBox(height: 16),
+                      _fullNameText(),
+                      const SizedBox(height: 8),
+                      _fullNameField(),
+                      const SizedBox(height: 16),
+                      _passwordText(),
+                      const SizedBox(height: 8),
+                      _passwordField(),
+                      const SizedBox(height: 16),
+                      _rePasswordText(),
+                      const SizedBox(height: 8),
+                      _rePasswordField(),
+                      const SizedBox(height: 24),
+                      _signUpButton(),
+                      const SizedBox(height: 24),
+                      Center(child: _signUpText()),
+                      const SizedBox(height: 32),
+                      const Divider(color: AppColors.primaryColor),
+                      const SizedBox(height: 16),
+                      _orLoginWithText(),
+                      const SizedBox(height: 16),
+                      _listIcon(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -195,20 +200,18 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Widget _signUpButton() {
-    return Builder(
-      builder: (context) {
-        return SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () => {onSignUp(context)},
-            child: const Text(
-              "Sign Up",
-              style: TextStyle(fontSize: 18),
-            ),
+    return Builder(builder: (context) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () => {onSignUp(context)},
+          child: const Text(
+            "Sign Up",
+            style: TextStyle(fontSize: 18),
           ),
-        );
-      }
-    );
+        ),
+      );
+    });
   }
 
   Widget _signUpText() {

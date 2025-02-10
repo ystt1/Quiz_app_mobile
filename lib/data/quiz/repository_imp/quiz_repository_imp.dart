@@ -154,7 +154,7 @@ class QuizRepositoryImp extends QuizRepository {
       final response = await sl<QuizService>().submitResultService(result);
       return response.fold((error) => Left(error), (data) {
         final entity = (data as ResultModel).toEntity();
-        print(entity.toMap());
+
         return Right(entity);
       });
     } catch (e) {

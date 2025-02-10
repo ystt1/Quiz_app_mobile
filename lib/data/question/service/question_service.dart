@@ -21,56 +21,7 @@ abstract class QuestionService{
 
 class QuestionServiceImp extends QuestionService {
 
-  final mockQuestions = [
-    BasicQuestionModel(
-      id: 'q1',
-      content: 'What is the capital of France?',
-      score: 10,
-      type: 'multiple_choice',
-      answers: [
-        BasicAnswerModel( content: 'Paris', isCorrect: true),
-        BasicAnswerModel(content: 'Berlin', isCorrect: false),
-        BasicAnswerModel( content: 'Madrid', isCorrect: false),
-        BasicAnswerModel(content: 'Rome', isCorrect: false),
-      ], dateCreated: '29/01/2024',
-    ),
-    BasicQuestionModel(
-      id: 'q2',
-      content: 'Which programming language is used for Flutter development?',
-      score: 15,
-      type: 'single_choice',
-      dateCreated: '29/01/2024',
-      answers: [
-        BasicAnswerModel( content: 'Java', isCorrect: false),
-        BasicAnswerModel( content: 'Python', isCorrect: false),
-        BasicAnswerModel( content: 'Dart', isCorrect: true),
-        BasicAnswerModel( content: 'C++', isCorrect: false),
-      ],
-    ),
-    BasicQuestionModel(
-      id: 'q3',
-      content: 'Select all prime numbers below:',
-      score: 20,
-      type: 'multiple_selection',
-      dateCreated: '29/01/2024',
-      answers: [
-        BasicAnswerModel( content: '2', isCorrect: true),
-        BasicAnswerModel(content: '4', isCorrect: false),
-        BasicAnswerModel( content: '5', isCorrect: true),
-        BasicAnswerModel( content: '8', isCorrect: false),
-      ],
-    ),
-    BasicQuestionModel(
-      id: 'q4',
-      content: 'Fill in the blank: "The sun rises in the ____."',
-      score: 10,
-      type: 'fill_in_the_blank',
-      dateCreated: '29/01/2024',
-      answers: [
-        BasicAnswerModel( content: 'East', isCorrect: true),
-      ],
-    ),
-  ];
+
 
   @override
   Future<Either> addQuestionService(QuestionPayload question) async {
@@ -112,6 +63,7 @@ class QuestionServiceImp extends QuestionService {
       {
         return Right(true);
       };
+
       return Left((jsonDecode(response.body)["message"]["message"])??"Some thing went wrong");
     } catch (e) {
       return Left(e.toString());

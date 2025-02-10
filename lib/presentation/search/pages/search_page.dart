@@ -25,191 +25,46 @@ class _SearchPageState extends State<SearchPage> {
   RangeValues timeRange = const RangeValues(0, 1800);
   RangeValues questionRange = const RangeValues(0, 100);
   String sortBy = "CreatedAt";
+
   void searchQuizzes(BuildContext context) {
-    late String params="";
-    params+=_searchController.text!=""?"name=${_searchController.text}&":"";
+    late String params = "";
+    params +=
+        _searchController.text != "" ? "name=${_searchController.text}&" : "";
     selectedTopics.forEach((e) => params += "topics=${e.id}&");
     // params+=sortBy!=""?"sortField=$sortBy&":"";
-    params += "minTime=${timeRange.start.toInt()}&maxTime=${timeRange.end.toInt()}&";
-    params += "minQuestions=${questionRange.start.toInt()}&maxQuestions=${questionRange.end.toInt()}&";
-    context.read<GetListQuizCubit>().execute(usecase: GetHotQuizUseCase(),params:params);
+    params +=
+        "minTime=${timeRange.start.toInt()}&maxTime=${timeRange.end.toInt()}&";
+    params +=
+        "minQuestions=${questionRange.start.toInt()}&maxQuestions=${questionRange.end.toInt()}&";
+    context
+        .read<GetListQuizCubit>()
+        .execute(usecase: GetHotQuizUseCase(), params: params);
   }
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text("Search Quizzes"),
       ),
       body: MultiBlocProvider(
         providers: [
           BlocProvider(
-              create: (BuildContext context) =>
-                  GetListQuizCubit()..execute(usecase: GetHotQuizUseCase(),params: "")),
+              create: (BuildContext context) => GetListQuizCubit()
+                ..execute(usecase: GetHotQuizUseCase(), params: "")),
           BlocProvider(
-              create: (BuildContext context) =>
-              GetAllTopicCubit()..onGet()),
-          BlocProvider(
-              create: (BuildContext context) =>
-              ButtonStateCubit()),
+              create: (BuildContext context) => GetAllTopicCubit()..onGet()),
+          BlocProvider(create: (BuildContext context) => ButtonStateCubit()),
         ],
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
+          child: Stack(
             children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                constraints: BoxConstraints(
-                  maxHeight: isFilterExpanded ? MediaQuery.of(context).size.height * 0.8 : 70,
-                ),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Bộ lọc",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            isFilterExpanded
-                                ? Icons.keyboard_arrow_up
-                                : Icons.filter_list,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isFilterExpanded = !isFilterExpanded;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    if (isFilterExpanded) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: const InputDecoration(
-                            labelText: "Enter Quiz Name",
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                      // Bộ lọc theo topic
-                      BlocBuilder<GetAllTopicCubit, GetAllTopicState>(
-                        builder: (BuildContext context, GetAllTopicState state) {
-                          if (state is GetAllTopicLoading) {
-                            return const GetLoading();
-                          }
-                          if (state is GetAllTopicFailure) {
-                            return GetFailure(name: state.error);
-                          }
-                          if (state is GetAllTopicSuccess) {
-                            return Wrap(
-                              spacing: 10,
-                              children: state.topics.map((topic) {
-                                return FilterChip(
-                                  label: Text(topic.name),
-                                  selected: selectedTopics.contains(topic),
-                                  onSelected: (isSelected) {
-                                    setState(() {
-                                      isSelected
-                                          ? selectedTopics.add(topic)
-                                          : selectedTopics.remove(topic);
-                                    });
-                                  },
-                                );
-                              }).toList(),
-                            );
-                          }
-                          return const GetSomethingWrong();
-                        },
-                      ),
-                      // Lọc thời gian
-                      ListTile(
-                        title: const Text("time (second)"),
-                        subtitle: RangeSlider(
-                          values: timeRange,
-                          min: 0,
-                          max: 1800,
-                          divisions: 30,
-                          labels: RangeLabels(
-                            "${timeRange.start.toInt()}",
-                            "${timeRange.end.toInt()}",
-                          ),
-                          onChanged: (RangeValues values) {
-                            setState(() {
-                              timeRange = values;
-                            });
-                          },
-                        ),
-                      ),
-                      // Lọc số lượng câu hỏi
-                      ListTile(
-                        title: const Text("Question Number"),
-                        subtitle: RangeSlider(
-                          values: questionRange,
-                          min: 0,
-                          max: 100,
-                          divisions: 3,
-                          labels: RangeLabels(
-                            "${questionRange.start.toInt()}",
-                            "${questionRange.end.toInt()}",
-                          ),
-                          onChanged: (RangeValues values) {
-                            setState(() {
-                              questionRange = values;
-                            });
-                          },
-                        ),
-                      ),
-                      // Sắp xếp
-                      ListTile(
-                        title: const Text("SortBy"),
-                        trailing: DropdownButton<String>(
-                          value: sortBy,
-                          items: [
-                            "CreatedAt",
-                            "Participants",
-                          ].map((option) {
-                            return DropdownMenuItem(
-                              value: option,
-                              child: Text(option),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              sortBy = value!;
-                            });
-                          },
-                        ),
-                      ),
-                      Builder(
-                        builder: (context) {
-                          return ElevatedButton(
-                            onPressed: ()=>searchQuizzes(context),
-                            child: const Text("Search"),
-                          );
-                        }
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              Expanded(
-                child:
-                    BlocBuilder<GetListQuizCubit, GetListQuizState>(
-                  builder:
-                      (BuildContext context, GetListQuizState state) {
+              SizedBox(
+                height: MediaQuery.of(context).size.height,
+                child: BlocBuilder<GetListQuizCubit, GetListQuizState>(
+                  builder: (BuildContext context, GetListQuizState state) {
                     if (state is GetListQuizLoading) {
                       return const GetLoading();
                     }
@@ -220,13 +75,172 @@ class _SearchPageState extends State<SearchPage> {
                       if (state.quizzes.isEmpty) {
                         return const GetFailure(name: "Not Found");
                       }
-                      return QuizList(
-                        quizList: state.quizzes,
-                        isYour: false,
+                      return Column(
+                        children: [
+                          SizedBox(height: 80,),
+                          
+                          Expanded(
+                            child: QuizList(
+                              quizList: state.quizzes,
+                              isYour: false,
+                            ),
+                          ),
+                        ],
                       );
                     }
-                    return const Center(child: Text("didn't search"),);
+                    return const Center(
+                      child: Text("didn't search"),
+                    );
                   },
+                ),
+              ),
+              SingleChildScrollView(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  constraints: BoxConstraints(
+                    maxHeight: isFilterExpanded
+                        ? MediaQuery.of(context).size.height * 0.8
+                        : 70,
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Bộ lọc",
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              isFilterExpanded
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.filter_list,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isFilterExpanded = !isFilterExpanded;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      if (isFilterExpanded) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: const InputDecoration(
+                              labelText: "Enter Quiz Name",
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        // Bộ lọc theo topic
+                        BlocBuilder<GetAllTopicCubit, GetAllTopicState>(
+                          builder:
+                              (BuildContext context, GetAllTopicState state) {
+                            if (state is GetAllTopicLoading) {
+                              return const GetLoading();
+                            }
+                            if (state is GetAllTopicFailure) {
+                              return GetFailure(name: state.error);
+                            }
+                            if (state is GetAllTopicSuccess) {
+                              return Wrap(
+                                spacing: 10,
+                                children: state.topics.map((topic) {
+                                  return FilterChip(
+                                    label: Text(topic.name),
+                                    selected: selectedTopics.contains(topic),
+                                    onSelected: (isSelected) {
+                                      setState(() {
+                                        isSelected
+                                            ? selectedTopics.add(topic)
+                                            : selectedTopics.remove(topic);
+                                      });
+                                    },
+                                  );
+                                }).toList(),
+                              );
+                            }
+                            return const GetSomethingWrong();
+                          },
+                        ),
+                        // Lọc thời gian
+                        ListTile(
+                          title: const Text("time (second)"),
+                          subtitle: RangeSlider(
+                            values: timeRange,
+                            min: 0,
+                            max: 1800,
+                            divisions: 30,
+                            labels: RangeLabels(
+                              "${timeRange.start.toInt()}",
+                              "${timeRange.end.toInt()}",
+                            ),
+                            onChanged: (RangeValues values) {
+                              setState(() {
+                                timeRange = values;
+                              });
+                            },
+                          ),
+                        ),
+                        // Lọc số lượng câu hỏi
+                        ListTile(
+                          title: const Text("Question Number"),
+                          subtitle: RangeSlider(
+                            values: questionRange,
+                            min: 0,
+                            max: 100,
+                            divisions: 3,
+                            labels: RangeLabels(
+                              "${questionRange.start.toInt()}",
+                              "${questionRange.end.toInt()}",
+                            ),
+                            onChanged: (RangeValues values) {
+                              setState(() {
+                                questionRange = values;
+                              });
+                            },
+                          ),
+                        ),
+                        // Sắp xếp
+                        ListTile(
+                          title: const Text("SortBy"),
+                          trailing: DropdownButton<String>(
+                            value: sortBy,
+                            items: [
+                              "CreatedAt",
+                              "Participants",
+                            ].map((option) {
+                              return DropdownMenuItem(
+                                value: option,
+                                child: Text(option),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                sortBy = value!;
+                              });
+                            },
+                          ),
+                        ),
+                        Builder(builder: (context) {
+                          return ElevatedButton(
+                            onPressed: () => searchQuizzes(context),
+                            child: const Text("Search"),
+                          );
+                        }),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],

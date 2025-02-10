@@ -1,4 +1,3 @@
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quiz_app/core/constant/socket_service.dart';
 import 'package:quiz_app/core/global_storage.dart';
@@ -9,7 +8,7 @@ import 'package:quiz_app/service_locator.dart';
 
 class GetChattingCubit extends Cubit<GetChattingState> {
   GetChattingCubit() : super(GetChattingLoading());
-  List<MessageModel> messages=[];
+  List<MessageModel> messages = [];
   final _socketService = sl<SocketService>();
 
   Future<void> onGet(String userId) async {
@@ -18,38 +17,27 @@ class GetChattingCubit extends Cubit<GetChattingState> {
       final returnedData = await sl<GetMessageUseCase>().call(
         params: userId,
       );
+      messages.clear();
+      returnedData.fold((error) {}, (data) async {
+        messages.addAll(data);
+        emit(GetChattingSuccess(messages: data));
+      });
+      String? myId = await GlobalStorage.getUserId();
+      final socket = await _socketService.socket;
+      socket.off('newMessage');
+      socket.emit('joinConversation', {"senderId": myId, "receiverId": userId});
 
-      returnedData.fold((error) => emit(GetChattingFailure(error: error)),
-              (data) async {
-                messages.clear();
-                messages.addAll(data);
-            emit(GetChattingSuccess(messages: data));
+      socket.on('newMessage', (data) {
 
-            final socket = await _socketService.socket;
-
-
-            socket.off('newMessage');
-
-
-            socket.emit('joinConversation', {
-              "senderId": await GlobalStorage.getUserId(),
-              "receiverId": userId
-            });
-
-
-            socket.on('newMessage', (data) {
-              var message= MessageModel.fromMap(data);
-              messages.add(message);
-              emit(GetChattingSuccess(messages: messages));
-            });
-          }
-      );
+        var message = MessageModel.fromMap(data);
+        messages.add(message);
+        emit(GetChattingSuccess(messages: messages));
+      });
     } catch (e) {
-      print(e.toString());
+
       emit(GetChattingFailure(error: e.toString()));
     }
   }
-
 
   Future<void> onSendMessage(String content, String receiverId) async {
     final newMessage = {

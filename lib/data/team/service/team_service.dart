@@ -93,7 +93,7 @@ class TeamServiceImp extends TeamService {
   @override
   Future<Either> getListTeamService(String params) async {
     try {
-      print(params);
+
       final apiService = sl<ApiService>();
       final response = await apiService.get('$url/team?$params');
       if (response.statusCode == 200) {
@@ -247,7 +247,6 @@ class TeamServiceImp extends TeamService {
       final apiService = sl<ApiService>();
       final response = await apiService
           .put('$url/team/${teamQuizzes.idTeam}',{'removeQuiz':[teamQuizzes.quizIds]});
-      print(response.body);
       if (response.statusCode == 200) {
         return Right((jsonDecode(response.body)));
       }

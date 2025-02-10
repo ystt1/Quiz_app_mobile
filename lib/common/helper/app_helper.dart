@@ -27,7 +27,7 @@ class AppHelper{
 
 
 
-  static dateFormat(String isoDate)
+  static dateFormatWithTime(String isoDate)
   {
     DateTime dateTime = DateTime.parse(isoDate);
 
@@ -35,7 +35,7 @@ class AppHelper{
     return formattedDate;
   }
 
-  static dateFormatWithTime(String isoDate)
+  static dateFormat(String isoDate)
   {
     DateTime dateTime = DateTime.parse(isoDate);
 

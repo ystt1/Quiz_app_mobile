@@ -28,7 +28,7 @@ class TeamPage extends StatefulWidget {
 
 class _TeamPageState extends State<TeamPage> {
   void onRefresh(BuildContext context) {
-    context.read<GetTeamCubit>().onGet(usecase: GetListTeamUseCase());
+    context.read<GetTeamCubit>().onGet(usecase: GetListTeamUseCase(),params: "");
   }
 
   void onRefreshRequest(BuildContext context) {
@@ -68,7 +68,6 @@ class _TeamPageState extends State<TeamPage> {
             title: const Text('Teams',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             centerTitle: true,
-            backgroundColor: Colors.blueAccent,
             elevation: 0,
             actions: [
               BlocBuilder<GetJoinedStatusCubit, GetJoinedStatusState>(
@@ -158,44 +157,53 @@ class _TeamPageState extends State<TeamPage> {
                       },
                     ),
                   ),
-                  BlocBuilder<GetTeamCubit, GetTeamState>(
-                      builder: (BuildContext context, GetTeamState teams) {
-                    if (teams is GetTeamLoading) {
-                      return const GetLoading();
-                    }
-                    if (teams is GetTeamFailure) {
-                      return GetFailure(name: teams.error);
-                    }
-                    if (teams is GetTeamSuccess) {
-                      if (teams.teams.isEmpty) {
-                        return const Center(
-                          child: Text("Not Found Team"),
-                        );
-                      }
-                      return Expanded(
-                        child: ListView.separated(
-                          itemCount: teams.teams.length,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 10),
-                          itemBuilder: (context, index) {
-                            return TeamCard(
-                              team: teams.teams[index],
-                              onRefresh: () {
-                                onRefresh(context);
-                              },
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        onRefresh(context);
+                        onRefreshRequest(context);
+                      },
+                      child: BlocBuilder<GetTeamCubit, GetTeamState>(
+                          builder: (BuildContext context, GetTeamState teams) {
+                        if (teams is GetTeamLoading) {
+                          return const GetLoading();
+                        }
+                        if (teams is GetTeamFailure) {
+                          return GetFailure(name: teams.error);
+                        }
+                        if (teams is GetTeamSuccess) {
+                          if (teams.teams.isEmpty) {
+                            return const Center(
+                              child: Text("Not Found Team"),
                             );
-                          },
-                        ),
-                      );
-                    }
-                    ;
-                    return const GetSomethingWrong();
-                  }),
+                          }
+                          return
+                             ListView.separated(
+                              itemCount: teams.teams.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (context, index) {
+                                return TeamCard(
+                                  team: teams.teams[index],
+                                  onRefresh: () {
+                                    onRefresh(context);
+                                  },
+                                );
+                              },
+
+                          );
+                        }
+                        ;
+                        return const GetSomethingWrong();
+                      }),
+                    ),
+                  ),
                 ],
               );
             }
           ),
           floatingActionButton: FloatingActionButton(
+            heroTag: 'created Team',
             onPressed: () {
               showModalBottomSheet(
                   context: context,

@@ -54,7 +54,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: BlocListener<ButtonStateCubit,ButtonState>(
         listener: (BuildContext context, btnState) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          print(btnState);
+
           if(btnState is ButtonLoadingState)
             {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: GetLoading()));

@@ -7,6 +7,7 @@ import 'package:quiz_app/common/bloc/quiz/get_list_quiz_cubit.dart';
 import 'package:quiz_app/common/bloc/quiz/get_list_quiz_state.dart';
 import 'package:quiz_app/common/widgets/add_question_modal.dart';
 import 'package:quiz_app/common/widgets/add_quiz_modal.dart';
+import 'package:quiz_app/common/widgets/center_text.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
@@ -20,6 +21,8 @@ import 'package:quiz_app/presentation/library/bloc/get_my_question_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/get_my_question_state.dart';
 import 'package:quiz_app/presentation/library/widget/question_detail.dart';
 import 'package:quiz_app/presentation/library/widget/quiz_list.dart';
+
+import '../../../core/constant/app_color.dart';
 
 class LibraryPage extends StatefulWidget {
   @override
@@ -67,6 +70,10 @@ class _LibraryPageState extends State<LibraryPage> {
                   SearchAndSortModel(name: '', sortField: '', direction: ''))),
       ],
       child: Scaffold(
+        appBar:  PreferredSize(
+          preferredSize: const Size.fromHeight(40),
+          child: Container(height: 40, ),
+        ),
         body: BlocBuilder<GetListQuizCubit, GetListQuizState>(
           builder: (BuildContext context, quizzes) {
             return BlocBuilder<GetMyQuestionCubit, GetMyQuestionState>(
@@ -76,7 +83,13 @@ class _LibraryPageState extends State<LibraryPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: const BoxDecoration(
-                        color: Colors.blueAccent,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.blueAccent,
+                            width: 3.0,
+                          ),
+
+                        ),
                         borderRadius: BorderRadius.only(
                           bottomLeft: Radius.circular(20),
                           bottomRight: Radius.circular(20),
@@ -115,6 +128,7 @@ class _LibraryPageState extends State<LibraryPage> {
         ),
         floatingActionButton: Builder(builder: (context) {
           return FloatingActionButton(
+            heroTag: "create Library",
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -152,7 +166,7 @@ class _LibraryPageState extends State<LibraryPage> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : Colors.white70,
+              color: isSelected ? AppColors.textColor : Colors.grey,
             ),
           ),
           const SizedBox(height: 4),
@@ -161,7 +175,7 @@ class _LibraryPageState extends State<LibraryPage> {
               height: 3,
               width: 60,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textColor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -178,6 +192,10 @@ class _LibraryPageState extends State<LibraryPage> {
       return GetFailure(name: quizzes.error);
     }
     if (quizzes is GetListQuizSuccess) {
+      if(quizzes.quizzes.isEmpty)
+        {
+          return const CenterText(text: "Not found any quiz");
+        }
       return BlocProvider(
         create: (BuildContext context) => ButtonStateCubit(),
         child: QuizList(
@@ -199,20 +217,23 @@ class _LibraryPageState extends State<LibraryPage> {
       return GetFailure(name: questions.error);
     }
     if (questions is GetMyQuestionSuccess) {
+      if(questions.questions.isEmpty)
+      {
+        return const CenterText(text: "Not found any question");
+      }
       return ListView.builder(
         itemBuilder: (context, index) {
           return BlocProvider(
-            create: (BuildContext context) =>ButtonStateCubit(),
-            child: BlocListener<ButtonStateCubit,ButtonState>(
+            create: (BuildContext context) => ButtonStateCubit(),
+            child: BlocListener<ButtonStateCubit, ButtonState>(
               listener: (BuildContext context, ButtonState btnState) {
-                if(btnState is ButtonFailureState)
-                  {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GetFailure(name: btnState.errorMessage)));
-                  }
-                if(btnState is ButtonSuccessState)
-                  {
-                    context.read<GetMyQuestionCubit>().onRemove(btnState.index!);
-                  }
+                if (btnState is ButtonFailureState) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: GetFailure(name: btnState.errorMessage)));
+                }
+                if (btnState is ButtonSuccessState) {
+                  context.read<GetMyQuestionCubit>().onRemove(btnState.index!);
+                }
               },
               child: GestureDetector(
                 onTap: () {
@@ -220,26 +241,26 @@ class _LibraryPageState extends State<LibraryPage> {
                     context: context,
                     isScrollControlled: true,
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(16)),
                     ),
-                    builder: (innerContext) => EditQuestionModal(parenContext: context,
+                    builder: (innerContext) => EditQuestionModal(
+                        parenContext: context,
                         question: questions.questions[index],
                         onRefresh: () => onRefreshQuestion(context)),
                   );
                 },
-                child: Builder(
-                  builder: (context) {
-                    return QuestionCard(
-                        question: questions.questions[index],
-                        index: index,
-                        onDelete: () {
-                          context.read<ButtonStateCubit>().execute(
-                              usecase: DeleteQuestionUseCase(),
-                              params: questions.questions[index].id,
-                              index: index);
-                        });
-                  }
-                ),
+                child: Builder(builder: (context) {
+                  return QuestionCard(
+                      question: questions.questions[index],
+                      index: index,
+                      onDelete: () {
+                        context.read<ButtonStateCubit>().execute(
+                            usecase: DeleteQuestionUseCase(),
+                            params: questions.questions[index].id,
+                            index: index);
+                      });
+                }),
               ),
             ),
           );

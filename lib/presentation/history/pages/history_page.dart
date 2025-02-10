@@ -13,6 +13,8 @@ import 'package:quiz_app/domain/quiz/usecase/get_list_result_usecase.dart';
 import 'package:quiz_app/presentation/history/pages/result_page.dart';
 import 'package:quiz_app/presentation/history/widgets/result_card.dart';
 
+import '../../../common/widgets/center_text.dart';
+
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
 
@@ -38,7 +40,7 @@ class HistoryPage extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Quiz Results'),
           centerTitle: true,
-          backgroundColor: Colors.blueAccent,
+
         ),
         body: BlocProvider(
           create: (BuildContext context) => GetListResultCubit()
@@ -63,7 +65,7 @@ class HistoryPage extends StatelessWidget {
                 }
                 if (state is GetListResultSuccess) {
                   if (state.results.isEmpty) {
-                    return Center(child: Text("Not found any history"));
+                      return const Expanded(child: CenterText(text: "Not found any history"));
                   }
                   return Expanded(
                     child: ListView.builder(

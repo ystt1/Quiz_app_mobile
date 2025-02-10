@@ -10,7 +10,7 @@ class LeaderBoardModel {
   LeaderBoardModel({required this.boardData, required this.myData});
 
   factory LeaderBoardModel.fromMap(Map<String, dynamic> map) {
-    print("Parsing UserScoreModel: ${map['myData']}");
+
     return LeaderBoardModel(
       boardData: (map['leaderBoard'] as List<dynamic>?)
               ?.map((e) => UserScoreModel.fromMap(e as Map<String, dynamic>))

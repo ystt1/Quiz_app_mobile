@@ -35,7 +35,9 @@ class _PracticePageState extends State<PracticePage> {
   void onChangedResult(BuildContext context, state) {
     context.read<ChangeResultCubit>().updateAnswer(state);
   }
-  List<List<String>> initializeUserAnswers(List<BasicQuestionEntity> questions) {
+
+  List<List<String>> initializeUserAnswers(
+      List<BasicQuestionEntity> questions) {
     return questions.map((question) {
       if (question.type == "drag-and-drop") {
         int blanksCount = question.content.split('___').length - 1;
@@ -44,7 +46,6 @@ class _PracticePageState extends State<PracticePage> {
       return [""];
     }).toList();
   }
-
 
   Future<bool> onExitAttempt(
       BuildContext oldcontext, PracticePayloadModel result) async {
@@ -75,20 +76,55 @@ class _PracticePageState extends State<PracticePage> {
   }
 
   void submitAnswers(
-      PracticePayloadModel result, String status, BuildContext context) {
+      PracticePayloadModel result, String status, BuildContext context) async {
+    final unansweredQuestions = result.userAnswers
+        .asMap()
+        .entries
+        .where((entry) => entry.value.isEmpty || entry.value.contains(""))
+        .map((entry) => entry.key + 1)
+        .toList();
+
+    if (unansweredQuestions.isNotEmpty && status == "done") {
+      final confirmSubmit = await showDialog<bool>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Not answer question"),
+            content: Text(
+                "You still have (question ${unansweredQuestions.join(", ")}) not answer yet. Are you sure want to submit?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text("Back"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text("Submit"),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirmSubmit != true) {
+        return;
+      }
+    }
 
     final elapsedTime = context.read<WorkoutCubit>().state is WorkoutInProgress
         ? (context.read<WorkoutCubit>().state as WorkoutInProgress).elapsed!
         : 0;
 
     final flag = PracticePayloadModel(
-        userAnswers: result.userAnswers,
-        status: status,
-        completeTime: widget.quiz.time - elapsedTime,
-        quizId: result.quizId, questions: result.questions);
-    context
-        .read<SubmitCubit>().onSubmit(flag);
+      userAnswers: result.userAnswers,
+      status: status,
+      completeTime: widget.quiz.time - elapsedTime,
+      quizId: result.quizId,
+      questions: result.questions,
+    );
+    context.read<SubmitCubit>().onSubmit(flag);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -105,28 +141,27 @@ class _PracticePageState extends State<PracticePage> {
           create: (context) => SubmitCubit(),
         ),
       ],
-      child: BlocListener<SubmitCubit,SubmitState>(
+      child: BlocListener<SubmitCubit, SubmitState>(
         listener: (BuildContext context, SubmitState buttonState) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          if(buttonState is SubmitLoading)
-            {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GetLoading()));
-            }
-          if(buttonState is SubmitFailure)
-          {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GetFailure(name: buttonState.error)));
+          if (buttonState is SubmitLoading) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: GetLoading()));
           }
-          if(buttonState is SubmitSuccess)
-          {
-
+          if (buttonState is SubmitFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: GetFailure(name: buttonState.error)));
+          }
+          if (buttonState is SubmitSuccess) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => ResultPage(result: buttonState.result,),
+                builder: (context) => ResultPage(
+                  result: buttonState.result,
+                ),
               ),
             );
           }
-
         },
         child: BlocBuilder<GetPracticeQuestionCubit, GetPracticeQuestionState>(
           builder: (BuildContext context, GetPracticeQuestionState state) {
@@ -139,7 +174,7 @@ class _PracticePageState extends State<PracticePage> {
             if (state is GetPracticeQuestionSuccess) {
               BlocProvider.of<WorkoutCubit>(context)
                   .startWorkout(widget.quiz.time);
-              List<String> ques=state.questions.map((e)=>e.id).toList();
+              List<String> ques = state.questions.map((e) => e.id).toList();
               return BlocProvider(
                 create: (BuildContext context) => ChangeResultCubit(
                   PracticePayloadModel(
@@ -152,7 +187,6 @@ class _PracticePageState extends State<PracticePage> {
                 ),
                 child: BlocBuilder<ChangeResultCubit, PracticePayloadModel>(
                   builder: (BuildContext context, PracticePayloadModel result) {
-
                     return WillPopScope(
                       onWillPop: () => onExitAttempt(context, result),
                       child: Scaffold(
@@ -175,12 +209,14 @@ class _PracticePageState extends State<PracticePage> {
                                     );
                                   }
                                   return Container();
-                                }, listener: (context, state) {
-                                if (state is WorkoutFinish) {
-                                  final result = context.read<ChangeResultCubit>().state;
-                                  submitAnswers(result, "done", context);
-                                }
-                              },
+                                },
+                                listener: (context, state) {
+                                  if (state is WorkoutFinish) {
+                                    final result =
+                                        context.read<ChangeResultCubit>().state;
+                                    submitAnswers(result, "done", context);
+                                  }
+                                },
                               ),
                             ),
                             Expanded(
@@ -233,7 +269,8 @@ class _PracticePageState extends State<PracticePage> {
           onChange: (PracticePayloadModel result) {
             onChangedResult(context, result);
           },
-          result: result, index: index,
+          result: result,
+          index: index,
         );
         break;
       case 'selected-many':
@@ -242,7 +279,8 @@ class _PracticePageState extends State<PracticePage> {
           onChange: (PracticePayloadModel result) {
             onChangedResult(context, result);
           },
-          result: result, index: index,
+          result: result,
+          index: index,
         );
         break;
       case 'constructed':
@@ -251,7 +289,8 @@ class _PracticePageState extends State<PracticePage> {
           onChange: (PracticePayloadModel result) {
             onChangedResult(context, result);
           },
-          result: result, index: index,
+          result: result,
+          index: index,
         );
         break;
       case 'fill-in-the-blank':
@@ -260,7 +299,8 @@ class _PracticePageState extends State<PracticePage> {
           onChange: (PracticePayloadModel result) {
             onChangedResult(context, result);
           },
-          result: result, index: index,
+          result: result,
+          index: index,
         );
         break;
       case 'drag-and-drop':
@@ -269,7 +309,8 @@ class _PracticePageState extends State<PracticePage> {
           onChange: (PracticePayloadModel result) {
             onChangedResult(context, result);
           },
-          result: result, index: index,
+          result: result,
+          index: index,
         );
         break;
       default:
@@ -278,11 +319,9 @@ class _PracticePageState extends State<PracticePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (question.type != 'fill-in-the-blank' &&
-            question.type != 'drag-and-drop')
-          Text("${index + 1}. ${question.content}",
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(
+            "${index + 1}. ${(question.type != 'fill-in-the-blank' && question.type != 'drag-and-drop') ? question.content : ''}",
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         questionWidget,
       ],
     );

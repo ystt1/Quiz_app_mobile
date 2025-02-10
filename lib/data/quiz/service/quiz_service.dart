@@ -54,7 +54,7 @@ class QuizServiceImp extends QuizService {
   @override
   Future<Either> getHotQuizService(String filter) async {
     try {
-      print(filter);
+
       final uri = Uri.parse('$url/quiz?status=active&$filter');
       final response = await http.get(uri);
       if (response.statusCode == 200) {
@@ -124,7 +124,7 @@ class QuizServiceImp extends QuizService {
     try {
       final uri = Uri.parse('$url/quiz/$id');
       final response = await http.get(uri);
-      print(response.body);
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body)["data"];
         BasicQuizModel quiz = BasicQuizModel.fromMap(data);
@@ -274,7 +274,7 @@ class QuizServiceImp extends QuizService {
       final apiService = sl<ApiService>();
       final response =
           await apiService.post('$url/result', result.toMap());
-      print(response.body);
+
       if (response.statusCode == 200) {
         final data = ResultModel.fromMap(jsonDecode(response.body)["data"]);
         return Right(data);
@@ -289,11 +289,9 @@ class QuizServiceImp extends QuizService {
   @override
   Future<Either> getLeaderBoard(String idQuiz) async {
     try {
-      print("idQUiz"+idQuiz);
       final apiService = sl<ApiService>();
       final response = await apiService
           .post('$url/result/leadboard', {"idQuiz": idQuiz});
-      print(jsonDecode(response.body)["data"]["myData"]);
       if (response.statusCode == 200) {
         final decodedResponse = jsonDecode(response.body);
         if (decodedResponse["data"] == null) {
@@ -306,7 +304,6 @@ class QuizServiceImp extends QuizService {
       return Left((jsonDecode(response.body)["message"]) ??
           Left((jsonDecode(response.body)["message"][["message"]])));
     } catch (e) {
-      print(e.toString());
       return Left(e.toString());
     }
   }
@@ -314,12 +311,12 @@ class QuizServiceImp extends QuizService {
   @override
   Future<Either> getListResultService(String params) async {
     try {
-      print(params);
+
       final apiService = sl<ApiService>();
       final response = await apiService.get(
         '$url/result?$params',
       );
-      print(response.body);
+
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body)["data"];
         final results =

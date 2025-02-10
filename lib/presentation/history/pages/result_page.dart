@@ -5,10 +5,12 @@ import 'package:quiz_app/common/helper/app_helper.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
+import 'package:quiz_app/core/constant/app_color.dart';
 import 'package:quiz_app/domain/quiz/entity/basic_quiz_entity.dart';
 import 'package:quiz_app/domain/quiz/entity/result_entity.dart';
 import 'package:quiz_app/presentation/library/bloc/get_quiz_detail_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/get_quiz_detail_state.dart';
+import 'package:quiz_app/presentation/quiz/pages/practice_quiz_detail_page.dart';
 
 class ResultPage extends StatelessWidget {
   final ResultEntity result;
@@ -37,7 +39,7 @@ class ResultPage extends StatelessWidget {
                 child: BlocBuilder<GetQuizDetailCubit, GetQuizDetailState>(
                   builder: (BuildContext context, GetQuizDetailState state) {
                     if (state is GetQuizDetailLoading) {
-                      return GetLoading();
+                      return const GetLoading();
                     }
                     if (state is GetQuizDetailFailure) {
                       return GetFailure(name: state.error);
@@ -50,7 +52,7 @@ class ResultPage extends StatelessWidget {
                         },
                       );
                     }
-                    return GetSomethingWrong();
+                    return const GetSomethingWrong();
                   },
                 ),
               ),
@@ -58,13 +60,15 @@ class ResultPage extends StatelessWidget {
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    // Thực hiện logic làm lại bài quiz
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => PracticeQuizDetailPage(quizId: result.quizId.id)),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: const Text("Làm lại bài quiz", style: TextStyle(fontSize: 16)),
+                  child: const Text("Practice again", style: TextStyle(fontSize: 16)),
                 ),
               ),
             ],
@@ -88,15 +92,15 @@ class ResultPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Score:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text("${result.score}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
+                const Text("Score:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text("${result.score}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
               ],
             ),
             const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Status:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text("Status:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Text(result.status, style: TextStyle(fontSize: 16, color: Colors.grey[700])),
               ],
             ),
@@ -104,24 +108,24 @@ class ResultPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Completion Time:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                Text(AppHelper.formatDuration(result.completeTime), style: TextStyle(fontSize: 16)),
+                const Text("Completion Time:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(AppHelper.formatDuration(result.completeTime), style: const TextStyle(fontSize: 16)),
               ],
             ),
             const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Attempts:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                Text("${result.attemptTime}", style: TextStyle(fontSize: 16)),
+                const Text("Attempts:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text("${result.attemptTime}", style: const TextStyle(fontSize: 16)),
               ],
             ),
             const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Date:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                Text(AppHelper.dateFormatWithTime(result.createdAt), style: TextStyle(fontSize: 16)),
+                const Text("Date:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(AppHelper.dateFormatWithTime(result.createdAt), style: const TextStyle(fontSize: 16)),
               ],
             ),
           ],
@@ -135,20 +139,38 @@ class ResultPage extends StatelessWidget {
     final userAnswers = result.userAnswers.length > index ? result.userAnswers[index] : [];
     final correctAnswers = question.answers.where((a) => a.isCorrect).map((a) => a.content).toList();
 
+    bool isDragOrFill = question.type == 'drag-and-drop' || question.type == 'fill-in-the-blank';
+
+    bool isCompletelyCorrect = isDragOrFill
+        ? userAnswers.join('|') == correctAnswers.join('|')  // So sánh đúng thứ tự
+        : correctAnswers.every((answer) => userAnswers.contains(answer)) && userAnswers.every((answer) => correctAnswers.contains(answer));
+
     return Card(
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: isCompletelyCorrect ? AppColors.successColor : AppColors.errorColor, width: 2),
+        borderRadius: BorderRadius.circular(10),
+      ),
       margin: const EdgeInsets.symmetric(vertical: 5),
       child: ListTile(
         title: Text("${index + 1}. ${question.content}"),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...userAnswers.map((answer) => Text(
-              "- $answer ${correctAnswers.contains(answer) ? '✔' : '✘'}",
-              style: TextStyle(
-                color: correctAnswers.contains(answer) ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            )),
+            ...question.answers.map((answer) {
+              bool isSelected = userAnswers.contains(answer.content);
+              bool isCorrect = correctAnswers.contains(answer.content);
+              bool isMissing = isCorrect && !isSelected;
+
+              return Text(
+                "- ${answer.content} ${isSelected ? (isCorrect ? '✔' : '✘') : ''}",
+                style: TextStyle(
+                  color: isSelected
+                      ? (isCorrect ? AppColors.successColor : AppColors.errorColor) // Đúng: xanh, Sai: đỏ
+                      : (isMissing ? Colors.orange : Colors.black), // Thiếu: cam
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            }),
             const SizedBox(height: 5),
             Text("Correct Answers: ${correctAnswers.join(', ')}", style: const TextStyle(color: Colors.blue)),
           ],
@@ -156,6 +178,7 @@ class ResultPage extends StatelessWidget {
       ),
     );
   }
+
 
 
 }

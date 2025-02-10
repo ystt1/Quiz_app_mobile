@@ -35,7 +35,9 @@ class LeaderBoard extends StatelessWidget {
                       ? Expanded(
                           child: _buildLeaderBoard(state.leaderBoard.boardData))
                       : const SizedBox.shrink(),
-                  _buildMyRanking(state.leaderBoard.myData),
+                  state.leaderBoard.myData.user.id == ''
+                      ? const SizedBox()
+                      : _buildMyRanking(state.leaderBoard.myData),
                 ],
               );
             }
@@ -45,38 +47,58 @@ class LeaderBoard extends StatelessWidget {
   }
 
   Widget _buildTopThree(List<UserScoreEntity> boardData) {
-    return Row(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(3, (index) {
         if (index >= boardData.length) return const SizedBox();
         final userScore = boardData[index];
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Column(
+          child: Row(
             children: [
+              SizedBox(
+                height: 10,
+              ),
               CircleAvatar(
-                radius: index == 1 ? 40 : 35,
+                radius: index == 0 ? 40 : 35,
                 backgroundColor: Colors.amberAccent,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(45),
+                  borderRadius: BorderRadius.circular(50),
                   child: Base64ImageWidget(
                     base64String: userScore.user.avatar,
                   ),
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                "#${userScore.rank} ${userScore.user.email}",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: index == 0
-                      ? Colors.amber
-                      : index == 1
-                          ? Colors.grey
-                          : Colors.brown,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "#${userScore.rank} ${userScore.user.email}",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: index == 0
+                              ? Colors.amber
+                              : index == 1
+                                  ? Colors.grey
+                                  : Colors.brown,
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Score: ${userScore.score}"),
+                          Text("Time: ${userScore.completeTime}"),
+                          Text("Attempt: ${userScore.attemptTime}"),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              Text("Score: ${userScore.score}"),
             ],
           ),
         );

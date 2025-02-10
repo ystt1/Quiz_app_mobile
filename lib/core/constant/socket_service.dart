@@ -9,28 +9,30 @@ class SocketService {
 
   late IO.Socket _socket;
   final Completer<void> _socketInitialized = Completer<void>();
+  final TokenService _tokenService;
 
-  SocketService() {
+  SocketService(this._tokenService) {
     initSocket();
   }
 
   Future<void> initSocket() async {
-
+    String? token= await _tokenService.getAccessToken();
     _socket = IO.io(
-      '$url',
+      '$baseUrl',
       IO.OptionBuilder()
           .setTransports(["websocket"])
           .disableAutoConnect()
-          .setExtraHeaders({'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OTYyNWE0YWZkNmU4YWVkYzhmYzY0YSIsInVzZXJuYW1lIjoiYWRtaW4iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MzkwMDkxODksImV4cCI6MTc0MTYwMTE4OX0.peZCgs9VIXbYZg2DAspPVytT68Jqh_cLbMPuMx4c3uw"})
+          .setExtraHeaders({'Authorization': "Bearer $token"})
           .build(),
     );
-
+    print("abcd");
     _socket.connect();
 
     _socket.onConnect((_) {
       print('Socket connected: ${_socket.id}');
       if (!_socketInitialized.isCompleted) {
-        _socketInitialized.complete(); // Mark initialization as completed
+        _socketInitialized.complete();
+        print(" Socket Initialized");// Mark initialization as completed
       }
     });
 
@@ -40,7 +42,8 @@ class SocketService {
   }
 
   Future<IO.Socket> get socket async {
-    await _socketInitialized.future; // Wait for socket to be initialized
+    await _socketInitialized.future;
+    print("Socket initialized successfully, returning socket instance.");
     return _socket;
   }
 }

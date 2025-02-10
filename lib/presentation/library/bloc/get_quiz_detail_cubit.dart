@@ -32,7 +32,7 @@ class GetQuizDetailCubit extends Cubit<GetQuizDetailState> {
   onRemoveListQuiz(List<int> questions) {
     if(state is GetQuizDetailSuccess)
     {
-      print(questions);
+
       BasicQuizEntity currentQuiz=(state as GetQuizDetailSuccess).quiz;
       questions.sort((a, b) => b.compareTo(a));
 
