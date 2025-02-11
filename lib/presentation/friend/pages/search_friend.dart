@@ -66,8 +66,11 @@ class _SearchFriendState extends State<SearchFriend> {
                             },
                             child: ListTile(
                                 leading: CircleAvatar(
-                                  child: Base64ImageWidget(
-                                    base64String: state.users[index].avatar,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(60),
+                                    child: Base64ImageWidget(
+                                      base64String: state.users[index].avatar,
+                                    ),
                                   ),
                                 ),
                                 title: Text(state.users[index].email),

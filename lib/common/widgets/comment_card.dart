@@ -138,7 +138,7 @@ class _CommentCardState extends State<CommentCard> {
             child: Column(
               children: widget.comment.replies
                   .map((reply) => CommentCard(
-                post: widget.post!,
+                post: widget.post,
                 comment: reply,
                 onReply: widget.onReply,
                 isReply: true,

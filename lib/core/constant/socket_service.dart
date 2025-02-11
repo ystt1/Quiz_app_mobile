@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:quiz_app/core/constant/url.dart';
+import 'package:quiz_app/core/global_storage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../data/api_service.dart';
 
@@ -28,12 +29,14 @@ class SocketService {
     print("abcd");
     _socket.connect();
 
-    _socket.onConnect((_) {
+    _socket.onConnect((_) async {
       print('Socket connected: ${_socket.id}');
+
       if (!_socketInitialized.isCompleted) {
         _socketInitialized.complete();
         print(" Socket Initialized");// Mark initialization as completed
-      }
+      }String? userId = await GlobalStorage.getUserId();
+      _socket.emit("joinUserRoom", userId);
     });
 
     _socket.onDisconnect((_) {

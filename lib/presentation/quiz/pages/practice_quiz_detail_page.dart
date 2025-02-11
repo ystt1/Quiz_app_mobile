@@ -208,7 +208,7 @@ class _PracticeQuizDetailPageState extends State<PracticeQuizDetailPage>
                           style: const TextStyle(color: Colors.white),
                         ),
                         Text(
-                          'Duration: ${quiz.time} min',
+                          'Duration: ${quiz.time} seconds',
                           style: const TextStyle(color: Colors.white),
                         ),
                       ],

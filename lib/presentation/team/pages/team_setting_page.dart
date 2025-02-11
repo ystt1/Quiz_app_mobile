@@ -88,8 +88,11 @@ class _TeamSettingPageState extends State<TeamSettingPage> {
       children: [
         CircleAvatar(
           radius: 40,
-          child: Base64ImageWidget(
-            base64String: widget.team.image,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(60),
+            child: Base64ImageWidget(
+              base64String: widget.team.image,
+            ),
           ),
         ),
         Text('Participant: ${widget.team.memberCount}/${widget.team.maxParticipant}'),

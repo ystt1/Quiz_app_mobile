@@ -328,7 +328,7 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            "Duration: $time mins",
+            "Duration: $time seconds",
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium

@@ -109,18 +109,22 @@ class _AddTeamPageState extends State<AddTeamModal> {
                     builder: (context) {
                       return SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: (){_addTeam(context);},
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Add New Team',
-                            style: TextStyle(fontSize: 18),
-                          ),
+                        child: Builder(
+                          builder: (context) {
+                            return ElevatedButton(
+                              onPressed: (){_addTeam(context);},
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Add New Team',
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            );
+                          }
                         ),
                       );
                     }

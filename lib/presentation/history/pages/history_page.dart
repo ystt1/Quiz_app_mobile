@@ -45,48 +45,57 @@ class HistoryPage extends StatelessWidget {
         body: BlocProvider(
           create: (BuildContext context) => GetListResultCubit()
             ..execute(usecase: GetListResultUseCase(), params: ''),
-          child: Column(
-            children: [
-              Builder(builder: (context) {
-                return SearchSort(
-                  onSearch: (state) {
-                    onSearch(context, state);
-                  },
-                  type: "history",
-                );
-              }),
-              BlocBuilder<GetListResultCubit, GetListResultState>(
-                  builder: (BuildContext context, GetListResultState state) {
-                if (state is GetListResultLoading) {
-                  return const GetLoading();
-                }
-                if (state is GetListResultFailure) {
-                  return GetFailure(name: state.error);
-                }
-                if (state is GetListResultSuccess) {
-                  if (state.results.isEmpty) {
-                      return const Expanded(child: CenterText(text: "Not found any history"));
-                  }
-                  return Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(10),
-                      itemCount: state.results.length,
-                      itemBuilder: (context, index) {
-                        final result = state.results[index];
-                        return GestureDetector(
-                            onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          ResultPage(result: result)),
-                                ),
-                            child: ResultCard(result: result));
-                      },
-                    ),
-                  );
-                }
-                return const GetSomethingWrong();
-              }),
-            ],
+          child: Builder(
+            builder: (context) {
+              return RefreshIndicator(
+                onRefresh: ()async {
+                  context.read<GetListResultCubit>().execute(usecase: GetListResultUseCase(),params: '');
+                },
+                child: Column(
+                  children: [
+                    Builder(builder: (context) {
+                      return SearchSort(
+                        onSearch: (state) {
+                          onSearch(context, state);
+                        },
+                        type: "history",
+                      );
+                    }),
+                    BlocBuilder<GetListResultCubit, GetListResultState>(
+                        builder: (BuildContext context, GetListResultState state) {
+                      if (state is GetListResultLoading) {
+                        return const GetLoading();
+                      }
+                      if (state is GetListResultFailure) {
+                        return GetFailure(name: state.error);
+                      }
+                      if (state is GetListResultSuccess) {
+                        if (state.results.isEmpty) {
+                            return const Expanded(child: CenterText(text: "Not found any history"));
+                        }
+                        return Expanded(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(10),
+                            itemCount: state.results.length,
+                            itemBuilder: (context, index) {
+                              final result = state.results[index];
+                              return GestureDetector(
+                                  onTap: () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                ResultPage(result: result)),
+                                      ),
+                                  child: ResultCard(result: result));
+                            },
+                          ),
+                        );
+                      }
+                      return const GetSomethingWrong();
+                    }),
+                  ],
+                ),
+              );
+            }
           ),
         ));
   }

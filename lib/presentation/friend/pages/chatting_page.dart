@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quiz_app/common/bloc/call/call_cubit.dart';
 import 'package:quiz_app/common/helper/app_helper.dart';
 import 'package:quiz_app/common/helper/get_img_string.dart';
 import 'package:quiz_app/common/widgets/build_base_64_image.dart';
@@ -47,7 +48,20 @@ class _ChattingPageState extends State<ChattingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Tin nhắn")),
+      appBar: AppBar(
+        title: Text("Tin nhắn"),
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                  onPressed: () {
+                    context.read<CallCubit>().startCall(widget.user);
+                  },
+                  icon: Icon(Icons.call));
+            }
+          )
+        ],
+      ),
       body: BlocProvider(
         create: (BuildContext context) =>
             GetChattingCubit()..onGet(widget.user.id),
@@ -56,7 +70,8 @@ class _ChattingPageState extends State<ChattingPage> {
             Expanded(
               child: BlocBuilder<GetChattingCubit, GetChattingState>(
                 builder: (BuildContext context, GetChattingState state) {
-                  if (state is GetChattingLoading) return GetFailure(name: "Not have any message");
+                  if (state is GetChattingLoading)
+                    return GetFailure(name: "Not have any message");
                   if (state is GetChattingFailure) {
                     return GetFailure(name: state.error);
                   }
@@ -218,7 +233,6 @@ class _ChattingPageState extends State<ChattingPage> {
                               _controller.text.trim(), widget.user.id, "text");
                           _controller.clear();
                         }
-
                       },
                     );
                   }),

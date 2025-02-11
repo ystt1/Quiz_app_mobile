@@ -84,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _emailText() {
     return const Text(
-      'Email',
+      'UserName',
       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
     );
   }
