@@ -100,22 +100,30 @@ class _ListMyQuestionState extends State<ListMyQuestion> {
       List<String> selectedQuestion) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            icon: const Icon(CupertinoIcons.arrow_left)),
-        title: Visibility(child: Text("${selectedQuestion.length} items")),
+        leading: Padding(
+          padding:  const EdgeInsets.only(top: 20),
+          child: IconButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: const Icon(CupertinoIcons.arrow_left)),
+        ),
+        title: Padding(
+            padding:  const EdgeInsets.only(top: 20),
+            child: Visibility(child: Text("${selectedQuestion.length} items"))),
         actions: [
-          Visibility(
-            visible: selectedQuestion.isNotEmpty,
-            child: IconButton(
-                onPressed: () {
-                  context.read<SelectQuestionCubit>().onClear();
-                },
-                icon: const Icon(
-                  Icons.cancel,
-                )),
+          Padding(
+            padding:  const EdgeInsets.only(top: 20),
+            child: Visibility(
+              visible: selectedQuestion.isNotEmpty,
+              child: IconButton(
+                  onPressed: () {
+                    context.read<SelectQuestionCubit>().onClear();
+                  },
+                  icon: const Icon(
+                    Icons.cancel,
+                  )),
+            ),
           ),
           Visibility(
             visible: selectedQuestion.isNotEmpty,

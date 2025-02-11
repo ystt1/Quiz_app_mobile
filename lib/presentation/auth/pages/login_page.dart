@@ -122,21 +122,21 @@ class _LoginPageState extends State<LoginPage> {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-            onPressed: () => {
+          onPressed: () => {
             context.read<TokenCubit>().login(LoginPayLoad(
-            username: _userName.text, password: _password.text)),
-            if(context.read<TokenCubit>().state is TokenSuccess)
-        {
-            setState(() {
-
-            })
-      }
-      },
-        child: const Text(
-          "Login",
-          style: TextStyle(fontSize: 18),
+                username: _userName.text, password: _password.text)),
+            if (context.read<TokenCubit>().state is TokenSuccess)
+              {
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => HomePage()))
+              }
+          },
+          child: const Text(
+            "Login",
+            style: TextStyle(fontSize: 18),
+          ),
         ),
-      ),);
+      );
     });
   }
 

@@ -9,12 +9,11 @@ import 'package:quiz_app/domain/conversation/entity/conversation_entity.dart';
 import 'package:quiz_app/service_locator.dart';
 
 class GetListConversationCubit extends Cubit<GetListConversationState> {
-  GetListConversationCubit():super(GetListConversationLoading());
-  List<ConversationEntity> conversation=[];
+  GetListConversationCubit() : super(GetListConversationLoading());
+  List<ConversationEntity> conversation = [];
   final _socketService = sl<SocketService>();
 
-  onGet({dynamic params, required UseCase usecase})
-  async {
+  onGet({dynamic params, required UseCase usecase}) async {
     emit(GetListConversationLoading());
     try {
       Either returnedData = await usecase.call(params: params);
@@ -23,24 +22,23 @@ class GetListConversationCubit extends Cubit<GetListConversationState> {
       }, (data) async {
         conversation.clear();
         conversation.addAll(data);
-        conversation=conversation.reversed.toList();
+        conversation = conversation.reversed.toList();
         emit(GetListConversationSuccess(conversations: conversation));
         final socket = await _socketService.socket;
-        socket.emit("joinUserRoom",await GlobalStorage.getUserId());
-        if (!socket.hasListeners('updateConversationList')) {
-          socket.on('updateConversationList', (data) {
-            print("data"+data);
-            final entity= ConversationModel.fromMap(data).toEntity();
-            int index = conversation.indexWhere((c) => c.conversationId == entity.conversationId);
-            if (index != -1) {
-              conversation.removeAt(index);
-            }
-            conversation.insert(0, entity);
-            emit(GetListConversationSuccess(conversations: conversation));
-          });
-        }
+        socket.emit("joinUserRoom", await GlobalStorage.getUserId());
+        socket.on('updateConversationList', (data) {
+          final entity = ConversationModel.fromMap(data).toEntity();
+          int index = conversation
+              .indexWhere((c) => c.conversationId == entity.conversationId);
+          if (index != -1) {
+            conversation.removeAt(index);
+          }
+          conversation.insert(0, entity);
+          emit(GetListConversationSuccess(conversations: conversation));
+        });
       });
     } catch (e) {
+      print("ac" + e.toString());
       emit(GetListConversationFailure(error: e.toString()));
     }
   }

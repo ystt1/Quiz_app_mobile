@@ -70,7 +70,7 @@ class GetProfileCubit extends Cubit<GetProfileState> {
           status = 'none';
           break;
         case 'request_received':
-          status = 'none';
+          status = 'friends';
           break;
         default:
           break;
