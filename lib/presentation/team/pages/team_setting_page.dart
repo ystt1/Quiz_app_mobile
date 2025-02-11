@@ -92,7 +92,7 @@ class _TeamSettingPageState extends State<TeamSettingPage> {
             base64String: widget.team.image,
           ),
         ),
-        Text('Participant: ${widget.team.members.length}/${widget.team.maxParticipant}'),
+        Text('Participant: ${widget.team.memberCount}/${widget.team.maxParticipant}'),
         Text('Team Code: ${widget.team.code}'),
         QrImageView(
           data: widget.team.code,
@@ -180,7 +180,7 @@ class _TeamSettingPageState extends State<TeamSettingPage> {
           ),
           title: GestureDetector(
               onTap: () {
-                onClickUser(context, member.member.id);
+                onClickUser(context, member.member.id,widget.team.id);
               },
               child: Text(member.member.email)),
           trailing: widget.team.joinStatus == 'host'

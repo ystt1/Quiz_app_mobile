@@ -24,7 +24,7 @@ class LeaderBoardModel {
               attemptTime: 0,
               score: 0,
               user:
-                  SimpleUserModel(id: '', email: '', avatar: '')),
+                  SimpleUserModel(id: '', email: '', avatar: '',friendStatus: '')),
     );
   }
 }

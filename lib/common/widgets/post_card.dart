@@ -17,9 +17,10 @@ import 'package:quiz_app/presentation/team/bloc/get_list_post_cubit.dart';
 import '../helper/app_helper.dart';
 
 class PostCard extends StatefulWidget {
+  final String teamId;
   final PostEntity post;
 
-  const PostCard({super.key, required this.post});
+  const PostCard({super.key, required this.post,required this.teamId});
 
   @override
   State<PostCard> createState() => _PostCardState();
@@ -43,7 +44,7 @@ class _PostCardState extends State<PostCard> {
               children: [
                 GestureDetector(
                     onTap: () {
-                      onClickUser(context, widget.post.creator.id);
+                      onClickUser(context, widget.post.creator.id,widget.teamId);
                     },
                     child: CircleAvatar(
                       child: ClipRRect(
@@ -54,7 +55,7 @@ class _PostCardState extends State<PostCard> {
                 const SizedBox(width: 10),
                 GestureDetector(
                   onTap: () {
-                    onClickUser(context, widget.post.creator.id);
+                    onClickUser(context, widget.post.creator.id,widget.teamId);
                   },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,6 +195,7 @@ class _PostCardState extends State<PostCard> {
                         ),
                         builder: (context2) {
                           return CommentModal(
+                            idTeam: widget.teamId,
                             context: context,
                             post: widget.post,
                           );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quiz_app/common/widgets/build_base_64_image.dart';
 import 'package:quiz_app/domain/user/entity/sample_user_entity.dart';
 import 'package:quiz_app/presentation/friend/bloc/get_friend_request_cubit.dart';
 import '../../../common/bloc/button/button_state.dart';
@@ -39,7 +40,7 @@ class _ShowFriendRequestState extends State<ShowFriendRequest> {
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      leading: buildAvatar(user[index].avatar),
+                      leading: CircleAvatar(child: ClipRRect(borderRadius: BorderRadius.circular(60),child: Base64ImageWidget(base64String: user[index].avatar,),),),
                       title: Text(user[index].email),
                       trailing: Wrap(
                         children: [

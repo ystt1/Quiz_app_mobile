@@ -6,8 +6,15 @@ class MessageModel {
   final String content;
   final String sender;
   final String createdAt;
+  final String type;
 
-  MessageModel({required this.conversationId, required this.messageId, required this.content, required this.sender, required this.createdAt});
+  MessageModel(
+      {required this.conversationId,
+      required this.messageId,
+      required this.content,
+      required this.sender,
+      required this.createdAt,
+      required this.type});
 
   Map<String, dynamic> toMap() {
     return {
@@ -24,8 +31,8 @@ class MessageModel {
       conversationId: map['conversationId'] ?? "",
       messageId: map['_id'] ?? "",
       content: map['content'] ?? "",
-      sender: map['senderId']??"",
-      createdAt: map['sentAt'] ?? "",
+      sender: map['senderId'] ?? "",
+      createdAt: map['sentAt'] ?? "", type: map['type']??'text',
     );
   }
 }

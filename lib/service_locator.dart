@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:quiz_app/common/bloc/token_cubit.dart';
+import 'package:quiz_app/common/bloc/user/get_list_user_cubit.dart';
 import 'package:quiz_app/core/constant/socket_service.dart';
 import 'package:quiz_app/data/auth/repository_imp/auth_repository_imp.dart';
 import 'package:quiz_app/data/auth/service/auth_service.dart';
@@ -58,6 +59,7 @@ import 'package:quiz_app/domain/user/usecase/change_profile_usecase.dart';
 import 'package:quiz_app/domain/user/usecase/delete_friend_request_usecase.dart';
 import 'package:quiz_app/domain/user/usecase/get_friend_request_usecase.dart';
 import 'package:quiz_app/domain/user/usecase/get_friend_usecase.dart';
+import 'package:quiz_app/domain/user/usecase/get_list_user_usecase.dart';
 import 'package:quiz_app/domain/user/usecase/get_user_detail_usecase.dart';
 
 import 'data/api_service.dart';
@@ -128,6 +130,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<DeleteFriendRequestUseCase>(DeleteFriendRequestUseCase());
   sl.registerSingleton<GetFriendRequestUseCase>(GetFriendRequestUseCase());
   sl.registerSingleton<GetFriendUseCase>(GetFriendUseCase());
+  sl.registerSingleton<GetListUserUseCase>(GetListUserUseCase());
   //post
   sl.registerSingleton<AddPostUseCase>(AddPostUseCase());
   sl.registerSingleton<GetListPostUseCase>(GetListPostUseCase());

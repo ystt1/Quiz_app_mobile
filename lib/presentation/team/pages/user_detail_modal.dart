@@ -12,6 +12,7 @@ import 'package:quiz_app/common/widgets/click_user_detail.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
 import 'package:quiz_app/common/widgets/get_something_wrong.dart';
+import 'package:quiz_app/common/widgets/post_card.dart';
 import 'package:quiz_app/common/widgets/quiz_card.dart';
 import 'package:quiz_app/domain/quiz/usecase/get_hot_quiz_usecase.dart';
 import 'package:quiz_app/domain/user/entity/sample_user_entity.dart';
@@ -25,6 +26,8 @@ import 'package:quiz_app/presentation/friend/bloc/get_friend_state.dart';
 import 'package:quiz_app/presentation/friend/pages/chatting_page.dart';
 import 'package:quiz_app/presentation/profile/page/profile_page.dart';
 import 'package:quiz_app/presentation/quiz/pages/practice_quiz_detail_page.dart';
+import 'package:quiz_app/presentation/team/bloc/get_list_post_cubit.dart';
+import 'package:quiz_app/presentation/team/bloc/get_list_post_state.dart';
 
 import '../../../common/bloc/result/get_list_quiz_cubit.dart';
 import '../../../common/bloc/result/get_list_result_state.dart';
@@ -34,8 +37,10 @@ import '../../history/widgets/result_card.dart';
 
 class UserModalPage extends StatelessWidget {
   final String userId;
+  final String? idTeam;
 
-  const UserModalPage({Key? key, required this.userId}) : super(key: key);
+  const UserModalPage({Key? key, required this.userId, this.idTeam = ''})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +48,7 @@ class UserModalPage extends StatelessWidget {
       future: GlobalStorage.getUserId(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return CircularProgressIndicator();
-
+        print(idTeam);
         final id = snapshot.data ?? "";
 
         return userId == id
@@ -68,7 +73,12 @@ class UserModalPage extends StatelessWidget {
                       ..execute(
                           usecase: GetListResultUseCase(),
                           params: 'idParticipant=$userId'),
-                  )
+                  ),
+                  if ((idTeam != '' && idTeam != null))
+                    BlocProvider(
+                      create: (context) => GetListPostCubit()
+                        ..onGet("$idTeam&creator=$userId"),
+                    ),
                 ],
                 child: Scaffold(
                   appBar: AppBar(
@@ -85,7 +95,9 @@ class UserModalPage extends StatelessWidget {
                         const SizedBox(height: 20),
                         _buildFriendsList(context),
                         const SizedBox(height: 20),
-                        _buildTabs(),
+                        (idTeam == '' || idTeam == null)
+                            ? _buildTabs()
+                            : _buildPostCard(),
                       ],
                     ),
                   ),
@@ -155,8 +167,13 @@ class UserModalPage extends StatelessWidget {
                           onPressed: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      ChattingPage(user: SimpleUserEntity(id: state.user.id, email: state.user.email, avatar: state.user.avatar))),
+                                  builder: (context) => ChattingPage(
+                                      user: SimpleUserEntity(
+                                          id: state.user.id,
+                                          email: state.user.email,
+                                          avatar: state.user.avatar,
+                                          friendshipStatus:
+                                              state.user.friendshipStatus))),
                             );
                           },
                           icon: const Icon(Icons.chat, color: Colors.blue),
@@ -305,7 +322,7 @@ class UserModalPage extends StatelessWidget {
                     itemBuilder: (context, index) {
                       return GestureDetector(
                         onTap: () {
-                          onClickUser(context, state.users[index].id);
+                          onClickUser(context, state.users[index].id, '');
                         },
                         child: Column(
                           children: [
@@ -342,6 +359,39 @@ class UserModalPage extends StatelessWidget {
     );
   }
 
+  Widget _buildPostCard() {
+    return
+       BlocBuilder<GetListPostCubit, GetListPostState>(
+          builder: (BuildContext context, GetListPostState state) {
+        if (state is GetListPostLoading) {
+          return GetLoading();
+        }
+        if (state is GetListPostFailure) {
+          return GetFailure(name: state.error);
+        }
+        if (state is GetListPostSuccess) {
+
+          if(state.posts.isEmpty)
+            {
+              return Center(child: Text("user didn't post anything"),);
+            }
+          return Container(
+            height: 500,
+            child: (
+               ListView.builder(itemBuilder: (context, index) {
+                return PostCard(
+                  post: state.posts[index],
+                  teamId: idTeam ?? '',
+                );
+              },itemCount: state.posts.length,)
+            ),
+          );
+        }
+        return GetSomethingWrong();
+      },
+    );
+  }
+
   Widget _buildTabs() {
     return DefaultTabController(
       length: 2,
@@ -350,7 +400,7 @@ class UserModalPage extends StatelessWidget {
           const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.history), text: "Recent Activities"),
-              Tab(icon: Icon(Icons.create), text: "My Quizzes"),
+              Tab(icon: Icon(Icons.create), text: "Quizzes"),
             ],
           ),
           SizedBox(
@@ -369,22 +419,20 @@ class UserModalPage extends StatelessWidget {
                     if (state.results.isEmpty) {
                       return Center(child: Text("Not found any history"));
                     }
-                    return
-                       ListView.builder(
-                        padding: const EdgeInsets.all(10),
-                        itemCount: state.results.length,
-                        itemBuilder: (context, index) {
-                          final result = state.results[index];
-                          return GestureDetector(
-                              onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            PracticeQuizDetailPage(
-                                                quizId: result.quizId.id)),
-                                  ),
-                              child: ResultCard(result: result));
-                        },
-
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(10),
+                      itemCount: state.results.length,
+                      itemBuilder: (context, index) {
+                        final result = state.results[index];
+                        return GestureDetector(
+                            onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          PracticeQuizDetailPage(
+                                              quizId: result.quizId.id)),
+                                ),
+                            child: ResultCard(result: result));
+                      },
                     );
                   }
                   return const GetSomethingWrong();

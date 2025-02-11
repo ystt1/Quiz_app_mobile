@@ -7,6 +7,7 @@ import 'package:quiz_app/common/widgets/build_avatar.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/domain/team/entity/join_request_entity.dart';
 
+import '../../../common/widgets/build_base_64_image.dart';
 import '../../../domain/team/usecase/delete_request_join_team_usecase.dart';
 
 class RequestJoinModal extends StatefulWidget {
@@ -61,7 +62,7 @@ class _RequestJoinModalState extends State<RequestJoinModal> {
                     itemBuilder: (context, index) {
                       JoinRequestEntity request = widget.requests[index];
                       return ListTile(
-                        leading: buildAvatar(request.idTeam.image),
+                        leading: ClipRRect(borderRadius: BorderRadius.circular(12),child: Base64ImageWidget(base64String: request.idTeam.image,),),
                         title: Text(request.idTeam.name),
                         subtitle: Text("Status: ${request.status}"),
                         trailing: Row(

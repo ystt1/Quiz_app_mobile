@@ -26,6 +26,7 @@ abstract class UserService {
   Future<Either> getListFriend(String id);
 
   Future<Either> getListFriendRequest();
+  Future<Either> getListUsers(String email);
 }
 
 class UserServiceImp extends UserService {
@@ -166,5 +167,24 @@ class UserServiceImp extends UserService {
     }
   }
 
+
+  @override
+  Future<Either> getListUsers(String email) async {
+    try {
+
+      final apiService = sl<ApiService>();
+      final response = await apiService.get('$url/user/get-users?search=$email',);
+
+      if(response.statusCode==200)
+      {
+        final List<dynamic> data = jsonDecode(response.body)["data"];
+        final results = data.map((result) => SimpleUserModel.fromMap(result)).toList();
+        return Right(results);
+      };
+      return Left((jsonDecode(response.body)["message"])??"Some thing went wrong");
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
 
 }

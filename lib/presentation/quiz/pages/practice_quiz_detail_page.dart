@@ -68,7 +68,7 @@ class _PracticeQuizDetailPageState extends State<PracticeQuizDetailPage>
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
       ),
       builder: (context) {
-        return CommentModal(idQuiz: widget.quizId, context: context);
+        return CommentModal(idQuiz: widget.quizId, context: context,idTeam: widget.teamId,);
       },
     );
   }

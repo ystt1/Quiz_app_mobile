@@ -4,8 +4,8 @@ class SimpleUserModel{
   final String id;
   final String email;
   final String avatar;
-
-  SimpleUserModel({required this.id, required this.email, required this.avatar});
+  final String friendStatus;
+  SimpleUserModel({required this.id, required this.email, required this.avatar,required this.friendStatus});
 
   Map<String, dynamic> toMap() {
     return {
@@ -19,7 +19,7 @@ class SimpleUserModel{
     return SimpleUserModel(
       id: map['_id'] ?? map['id'],
       email: map['email'] as String,
-      avatar: map['avatar'] ?? "",
+      avatar: map['avatar'] ?? "", friendStatus:map['friendshipStatus'] ?? "none",
     );
   }
 }
@@ -28,6 +28,6 @@ extension SimpleUserModelToEntity on SimpleUserModel
 {
   SimpleUserEntity toEntity()
   {
-    return SimpleUserEntity(id: id, email: email, avatar: avatar);
+    return SimpleUserEntity(id: id, email: email, avatar: avatar, friendshipStatus: friendStatus);
   }
 }

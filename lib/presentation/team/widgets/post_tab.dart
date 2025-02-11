@@ -31,7 +31,7 @@ class PostTab extends StatelessWidget {
             return ListView.builder(
               itemCount: state.posts.length,
               itemBuilder: (context, index) {
-                return PostCard(post: state.posts[index],);
+                return PostCard(post: state.posts[index], teamId: team.id,);
               },
             );
           }

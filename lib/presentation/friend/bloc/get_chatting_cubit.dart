@@ -39,11 +39,12 @@ class GetChattingCubit extends Cubit<GetChattingState> {
     }
   }
 
-  Future<void> onSendMessage(String content, String receiverId) async {
+  Future<void> onSendMessage(String content, String receiverId,String type) async {
     final newMessage = {
       "content": content,
       "senderId": await GlobalStorage.getUserId(),
-      'receiverId': receiverId
+      'receiverId': receiverId,
+      'type':type
     };
 
     final socket = await _socketService.socket;

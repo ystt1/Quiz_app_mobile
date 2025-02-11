@@ -10,4 +10,5 @@ abstract class UserRepository{
   Future<Either> deleteFriendRequest(String id);
   Future<Either> getFriend(String id);
   Future<Either> getFriendRequest();
+  Future<Either> getListFriends(String name);
 }

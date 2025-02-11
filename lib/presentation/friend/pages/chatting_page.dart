@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quiz_app/common/helper/app_helper.dart';
+import 'package:quiz_app/common/helper/get_img_string.dart';
 import 'package:quiz_app/common/widgets/build_base_64_image.dart';
 import 'package:quiz_app/common/widgets/get_failure.dart';
 import 'package:quiz_app/common/widgets/get_loading.dart';
@@ -23,7 +24,9 @@ class ChattingPage extends StatefulWidget {
 class _ChattingPageState extends State<ChattingPage> {
   TextEditingController _controller = TextEditingController();
   String id = '';
+  String image = '';
   ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -47,16 +50,18 @@ class _ChattingPageState extends State<ChattingPage> {
       appBar: AppBar(title: Text("Tin nhắn")),
       body: BlocProvider(
         create: (BuildContext context) =>
-        GetChattingCubit()..onGet(widget.user.id),
+            GetChattingCubit()..onGet(widget.user.id),
         child: Column(
           children: [
             Expanded(
               child: BlocBuilder<GetChattingCubit, GetChattingState>(
                 builder: (BuildContext context, GetChattingState state) {
-                  if (state is GetChattingLoading) return GetLoading();
-                  if (state is GetChattingFailure) return GetFailure(name: state.error);
+                  if (state is GetChattingLoading) return GetFailure(name: "Not have any message");
+                  if (state is GetChattingFailure) {
+                    return GetFailure(name: state.error);
+                  }
                   if (state is GetChattingSuccess) {
-                    WidgetsBinding.instance.addPostFrameCallback((_){
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
                       _scrollToBottom();
                     });
                     return ListView.builder(
@@ -66,41 +71,61 @@ class _ChattingPageState extends State<ChattingPage> {
                         final message = state.messages[index];
                         final isMe = message.sender == id;
                         return Row(
-                          mainAxisAlignment:
-                          isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                          mainAxisAlignment: isMe
+                              ? MainAxisAlignment.end
+                              : MainAxisAlignment.start,
                           children: [
                             if (!isMe)
                               CircleAvatar(
-                                child: ClipRRect(borderRadius: BorderRadius.circular(45),
-                                    child: Base64ImageWidget(base64String: widget.user.avatar,)),
+                                child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(45),
+                                    child: Base64ImageWidget(
+                                      base64String: widget.user.avatar,
+                                    )),
                               ),
                             SizedBox(width: 10),
                             Column(
-                              crossAxisAlignment:
-                              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                              crossAxisAlignment: isMe
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
                               children: [
                                 Container(
                                   padding: EdgeInsets.all(12),
                                   margin: EdgeInsets.symmetric(vertical: 5),
                                   constraints: BoxConstraints(maxWidth: 250),
                                   decoration: BoxDecoration(
-                                    color: isMe ? Colors.blueAccent : Colors.grey[300],
+                                    color: isMe
+                                        ? Colors.blueAccent
+                                        : Colors.grey[300],
                                     borderRadius: BorderRadius.only(
                                       topLeft: Radius.circular(12),
                                       topRight: Radius.circular(12),
-                                      bottomLeft: isMe ? Radius.circular(12) : Radius.zero,
-                                      bottomRight: isMe ? Radius.zero : Radius.circular(12),
+                                      bottomLeft: isMe
+                                          ? Radius.circular(12)
+                                          : Radius.zero,
+                                      bottomRight: isMe
+                                          ? Radius.zero
+                                          : Radius.circular(12),
                                     ),
                                   ),
-                                  child: Text(
-                                    message.content,
-                                    style: TextStyle(color: isMe ? Colors.white : Colors.black),
-                                  ),
+                                  child: message.type == 'image'
+                                      ? Base64ImageWidget(
+                                          base64String: message.content,
+                                        )
+                                      : Text(
+                                          message.content,
+                                          style: TextStyle(
+                                              color: isMe
+                                                  ? Colors.white
+                                                  : Colors.black),
+                                        ),
                                 ),
                                 SizedBox(height: 4),
                                 Text(
                                   AppHelper.timeAgo(message.createdAt),
-                                  style: TextStyle(fontSize: 12, color: Colors.grey[600]), // Màu xám nhạt
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600]), // Màu xám nhạt
                                 ),
                               ],
                             ),
@@ -113,37 +138,90 @@ class _ChattingPageState extends State<ChattingPage> {
                 },
               ),
             ),
+            if (image != '')
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.only(left: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Stack(
+                      children: [
+                        SizedBox(
+                            height: 150,
+                            child: Base64ImageWidget(
+                              base64String: image,
+                            )),
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: Container(
+                            height: 30,
+                            width: 30,
+                            decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(60)),
+                            alignment: Alignment.center,
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(Icons.close, color: Colors.red),
+                              onPressed: () {
+                                setState(() {
+                                  image = '';
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             Padding(
               padding: EdgeInsets.all(8.0),
               child: Row(
                 children: [
+                  IconButton(
+                      onPressed: () async {
+                        String? base64Image = await getImgString();
+                        if (base64Image != null) {
+                          setState(() {
+                            image = base64Image;
+                          });
+                        }
+                      },
+                      icon: Icon(Icons.image)),
                   Expanded(
                     child: TextField(
                       controller: _controller,
                       decoration: InputDecoration(
-                        hintText: "Nhập tin nhắn...",
+                        hintText: "Enter message...",
                         border: OutlineInputBorder(),
                       ),
                     ),
                   ),
-                  Builder(
-                    builder: (context) {
-                      return IconButton(
-                        icon: Icon(Icons.send, color: Colors.blue),
-                        onPressed: () {
-                          if (_controller.text.trim().isNotEmpty) {
-                            context.read<GetChattingCubit>().onSendMessage(
-                              _controller.text.trim(),
-                              widget.user.id,
-                            );
-                            _scrollToBottom();
-                            _controller.clear();
-                            Future.delayed(Duration(milliseconds: 300), _scrollToBottom);
-                          }
-                        },
-                      );
-                    }
-                  ),
+                  Builder(builder: (context) {
+                    return IconButton(
+                      icon: Icon(Icons.send, color: Colors.blue),
+                      onPressed: () {
+                        if (image != '') {
+                          context
+                              .read<GetChattingCubit>()
+                              .onSendMessage(image, widget.user.id, "image");
+                          setState(() {
+                            image = '';
+                          });
+                        }
+                        if (_controller.text.trim().isNotEmpty) {
+                          context.read<GetChattingCubit>().onSendMessage(
+                              _controller.text.trim(), widget.user.id, "text");
+                          _controller.clear();
+                        }
+
+                      },
+                    );
+                  }),
                 ],
               ),
             ),
@@ -153,4 +231,3 @@ class _ChattingPageState extends State<ChattingPage> {
     );
   }
 }
-

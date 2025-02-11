@@ -21,8 +21,8 @@ class CommentModal extends StatefulWidget {
   final BuildContext context;
   final PostEntity? post;
   final String? idQuiz;
-
-  const CommentModal({super.key, this.idQuiz, this.post, required this.context});
+  final String? idTeam;
+  const CommentModal({super.key, this.idQuiz,this.idTeam, this.post, required this.context});
 
   @override
   State<CommentModal> createState() => _CommentModalState();
@@ -145,6 +145,7 @@ class _CommentModalState extends State<CommentModal> {
                         itemCount: state.comments.length,
                         itemBuilder: (context, index) {
                           return CommentCard(
+                            idTeam: widget.idTeam,
                             idQuiz: widget.idQuiz,
                             post: widget.post,
                             comment: state.comments[index],
@@ -158,11 +159,9 @@ class _CommentModalState extends State<CommentModal> {
                       ),
                     );
                   }
-                  return const GetSomethingWrong();
+                  return Expanded(child: const GetLoading());
                 },
               ),
-
-              // Hiển thị thông báo đang reply
               if (replyingTo != null)
                 Container(
                   padding: const EdgeInsets.all(8),

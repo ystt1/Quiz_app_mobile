@@ -40,7 +40,7 @@ class HeaderTeamDetail extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-             child: Base64ImageWidget(base64String: team.image,),
+             child: ClipRRect(borderRadius: BorderRadius.circular(60), child: Base64ImageWidget(base64String: team.image,)),
               radius: 20,
             ),
             const SizedBox(width: 10),

@@ -77,4 +77,19 @@ class UserRepositoryImp extends UserRepository {
       return Left(e.toString());
     }
   }
+
+  @override
+  Future<Either> getListFriends(String name) async {
+    try {
+      final response = await sl<UserService>().getListUsers(name);
+      return response.fold((error) => Left(error), (data) {
+        final entity = (data as List<SimpleUserModel>)
+            .map((SimpleUserModel user) => user.toEntity())
+            .toList();
+        return Right(entity);
+      });
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
 }

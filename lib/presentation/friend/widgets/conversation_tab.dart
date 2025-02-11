@@ -39,7 +39,7 @@ class ConversationTab extends StatelessWidget {
 
                       return Text(
                         (conversation.lastMessage.sender == userId ? "You: " : "") +
-                            conversation.lastMessage.content,
+                            conversation.lastMessage.content,maxLines: 1,overflow: TextOverflow.ellipsis,
                       );
                     },
                   )

@@ -35,7 +35,7 @@ class UserScoreModel {
       score: map['score'] as int? ?? 0,
       user: map['user'] != null
           ? SimpleUserModel.fromMap(map['user'] as Map<String, dynamic>)
-          : SimpleUserModel(id: '', email: '', avatar: ''),
+          : SimpleUserModel(id: '', email: '', avatar: '',friendStatus: 'none'),
     );
   }
 

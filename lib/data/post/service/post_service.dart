@@ -61,11 +61,11 @@ class PostServiceImp extends PostService{
   @override
   Future<Either> getPostService(String teamId) async {
     try {
-
+      print(teamId);
       final apiService = sl<ApiService>();
       final response = await apiService
           .get('$url/post?teamId=$teamId');
-
+      print(response.body);
       if (response.statusCode == 200) {
         
         final data =

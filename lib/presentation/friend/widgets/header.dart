@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quiz_app/common/bloc/conversation/get_list_conversation_cubit.dart';
 import 'package:quiz_app/common/bloc/user/get_user_detail_cubit.dart';
 import 'package:quiz_app/common/widgets/qr_page.dart';
+import 'package:quiz_app/domain/conversation/usecase/get_list_conversation_usecase.dart';
 import 'package:quiz_app/domain/user/entity/sample_user_entity.dart';
+import 'package:quiz_app/domain/user/usecase/get_friend_usecase.dart';
+import 'package:quiz_app/presentation/friend/pages/search_friend.dart';
 import 'package:quiz_app/presentation/friend/widgets/show_friend_request.dart';
 
 import '../../../domain/user/usecase/get_friend_request_usecase.dart';
+import '../bloc/get_friend_cubit.dart';
 import '../bloc/get_friend_request_cubit.dart';
 
 class AppBarHeaderFriendPage extends StatefulWidget {
@@ -27,11 +32,10 @@ class _AppBarHeaderFriendPageState extends State<AppBarHeaderFriendPage> {
           context: context,
           isScrollControlled: true,
           builder: (context2) {
-            return
-              ShowFriendRequest(
-                  parentContext: context,
-                  user: widget.friendRequest,
-                );
+            return ShowFriendRequest(
+              parentContext: context,
+              user: widget.friendRequest,
+            );
           });
     }
 
@@ -46,9 +50,24 @@ class _AppBarHeaderFriendPageState extends State<AppBarHeaderFriendPage> {
       ),
       actions: [
         IconButton(
+            onPressed: () {
+              context
+                  .read<GetFriendRequestCubit>()
+                  .onGet(useCase: GetFriendRequestUseCase());
+              context
+                  .read<GetListConversationCubit>()
+                  .onGet(usecase: GetListConversationUseCase());
+              context
+                  .read<GetFriendCubit>()
+                  .onGet(useCase: GetFriendUseCase(),params:'');
+            },
+            icon: Icon(Icons.refresh)),
+        IconButton(
           icon: const Icon(Icons.search),
           onPressed: () {
-            context.read<GetFriendRequestCubit>().onGet(useCase: GetFriendRequestUseCase());
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => SearchFriend()),
+            );
           },
         ),
         Stack(
@@ -56,7 +75,6 @@ class _AppBarHeaderFriendPageState extends State<AppBarHeaderFriendPage> {
             IconButton(
               icon: const Icon(Icons.person_add),
               onPressed: () {
-
                 widget.friendRequest.isNotEmpty
                     ? _showFriendRequests(context)
                     : {};

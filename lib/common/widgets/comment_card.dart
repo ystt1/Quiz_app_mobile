@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:quiz_app/common/helper/app_helper.dart';
 import 'package:quiz_app/common/widgets/build_avatar.dart';
 import 'package:quiz_app/common/widgets/build_base_64_image.dart';
+import 'package:quiz_app/common/widgets/click_user_detail.dart';
 import 'package:quiz_app/common/widgets/text_expandable.dart';
 import 'package:quiz_app/domain/post/entity/comment_entity.dart';
 import 'package:quiz_app/domain/post/entity/post_entity.dart';
 
 class CommentCard extends StatefulWidget {
+  final String? idTeam;
   final PostEntity? post;
   final CommentEntity comment;
   final Function(CommentEntity) onReply;
@@ -15,6 +17,7 @@ class CommentCard extends StatefulWidget {
 
   const CommentCard({
     super.key,
+    this.idTeam,
     this.idQuiz,
     this.post,
     required this.comment,
@@ -46,26 +49,30 @@ class _CommentCardState extends State<CommentCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              Row(
-                children: [
-                  CircleAvatar(
-                    child: ClipRRect(
-                      child: Base64ImageWidget(base64String:  widget.comment.user.avatar),
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      widget.comment.user.email,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+              GestureDetector(
+                onTap:()=> onClickUser(context, widget.comment.user.id, widget.idTeam),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(60),
+                        child: Base64ImageWidget(base64String:  widget.comment.user.avatar),
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        widget.comment.user.email,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 6),
 

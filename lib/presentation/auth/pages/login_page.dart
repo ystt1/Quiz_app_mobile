@@ -6,6 +6,9 @@ import 'package:quiz_app/common/bloc/token_cubit.dart';
 import 'package:quiz_app/core/constant/app_color.dart';
 import 'package:quiz_app/data/auth/models/login_payload.dart';
 import 'package:quiz_app/presentation/auth/pages/sign_up_page.dart';
+import 'package:quiz_app/presentation/home/pages/home_page.dart';
+
+import '../../../common/bloc/token_state.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -119,16 +122,21 @@ class _LoginPageState extends State<LoginPage> {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () => {
+            onPressed: () => {
             context.read<TokenCubit>().login(LoginPayLoad(
-                username: _userName.text, password: _password.text))
-          },
-          child: const Text(
-            "Login",
-            style: TextStyle(fontSize: 18),
-          ),
+            username: _userName.text, password: _password.text)),
+            if(context.read<TokenCubit>().state is TokenSuccess)
+        {
+            setState(() {
+
+            })
+      }
+      },
+        child: const Text(
+          "Login",
+          style: TextStyle(fontSize: 18),
         ),
-      );
+      ),);
     });
   }
 
@@ -147,9 +155,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _signUpText() {
     return GestureDetector(
-      onTap: (){Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => SignUpPage()),
-      );},
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => SignUpPage()),
+        );
+      },
       child: RichText(
         text: const TextSpan(
           children: [
