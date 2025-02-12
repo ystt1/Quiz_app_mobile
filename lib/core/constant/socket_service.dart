@@ -35,8 +35,7 @@ class SocketService {
       if (!_socketInitialized.isCompleted) {
         _socketInitialized.complete();
         print(" Socket Initialized");// Mark initialization as completed
-      }String? userId = await GlobalStorage.getUserId();
-      _socket.emit("joinUserRoom", userId);
+      }
     });
 
     _socket.onDisconnect((_) {

@@ -38,7 +38,7 @@ class CallCubit extends Cubit<CallState> {
             RTCIceCandidate(
               data["candidate"]["candidate"],
               data["candidate"]["sdpMid"],
-              data["candidate"]["sdpMLineIndex"],
+              data["sdpMLineIndex"] is int ? data["sdpMLineIndex"] : int.tryParse(data["sdpMLineIndex"].toString()) ?? 0,
             ),
           );
         }
@@ -52,14 +52,20 @@ class CallCubit extends Cubit<CallState> {
 
       // Nhận answer từ người nhận
       socket.on("callAccepted", (data) async {
-        print("📞 Answer received from callee");
+        print("📞 Answer received: $data");
 
         if (_peerConnection == null) return;
 
-        RTCSessionDescription remoteDesc = RTCSessionDescription(
-            data["signal"]["sdp"], data["signal"]["type"]);
+        final signal = data["signal"];
+        if (signal == null || signal["sdp"] == null || signal["type"] == null) {
+          print("❌ Dữ liệu nhận được từ server không hợp lệ: $data");
+          return;
+        }
 
+        RTCSessionDescription remoteDesc = RTCSessionDescription(signal["sdp"], signal["type"]);
         await _peerConnection!.setRemoteDescription(remoteDesc);
+        print("✅ Đã đặt Remote Description thành công!");
+
         if (!isClosed) {
           final user = SimpleUserModel.fromMap(data).toEntity();
           emit(CallStateSuccess(user: user));
@@ -82,14 +88,20 @@ class CallCubit extends Cubit<CallState> {
     _peerConnection!.onIceCandidate = (candidate) async {
       final socket = await _socketService.socket;
       print("❄️ Gửi ICE Candidate");
-      socket.emit("iceCandidate", {
-        "to": receiverId,
-        "candidate": {
-          "candidate": candidate.candidate,
-          "sdpMid": candidate.sdpMid,
-          "sdpMLineIndex": candidate.sdpMLineIndex,
+      socket.on("iceCandidate", (data) async {
+        print("❄️ Nhận ICE Candidate từ server: $data");
+        if (_peerConnection != null) {
+          await _peerConnection!.addCandidate(
+            RTCIceCandidate(
+              data["candidate"]["candidate"],
+              data["candidate"]["sdpMid"],
+              data["candidate"]["sdpMLineIndex"],
+            ),
+          );
+          print("✅ Đã thêm ICE Candidate!");
         }
       });
+
     };
 
     _peerConnection!.onTrack = (event) async {
@@ -153,16 +165,24 @@ class CallCubit extends Cubit<CallState> {
       await _createPeerConnection();
     }
 
+
     try {
       // Kiểm tra trạng thái trước khi rollback
-      if (_peerConnection!.signalingState !=
-          RTCSignalingState.RTCSignalingStateStable) {
+      if (_peerConnection!.signalingState != RTCSignalingState.RTCSignalingStateStable) {
         print("⚠️ PeerConnection không stable, rollback...");
-        await _peerConnection!.setLocalDescription(
-            RTCSessionDescription("", "rollback")).catchError((e) {
-          print("⚠️ Rollback thất bại: $e");
-        });
+        try {
+          await _peerConnection!.setLocalDescription(
+            RTCSessionDescription("", "rollback"),
+          );
+          print("✅ Rollback thành công!");
+        } catch (e) {
+          print("❌ Rollback thất bại: $e");
+        }
+      } else {
+        print("✅ PeerConnection đã stable, không cần rollback!");
       }
+
+
 
 
       // Chờ PeerConnection về trạng thái stable
@@ -196,12 +216,20 @@ class CallCubit extends Cubit<CallState> {
   }
 
   Future<void> _waitForStableConnection() async {
-    while (_peerConnection?.signalingState !=
-        RTCSignalingState.RTCSignalingStateStable) {
-      print("⏳ Chờ PeerConnection về trạng thái stable...");
+    int attempts = 0;
+    while (_peerConnection?.signalingState != RTCSignalingState.RTCSignalingStateStable) {
+      print("⏳ Chờ PeerConnection về trạng thái stable... (${attempts + 1})");
+
+      if (attempts >= 20) { // Giới hạn số lần thử
+        print("⚠️ Quá thời gian chờ PeerConnection về stable!");
+        break;
+      }
+
       await Future.delayed(Duration(milliseconds: 100));
+      attempts++;
     }
   }
+
 
   void dispose() {
     localRenderer.dispose();

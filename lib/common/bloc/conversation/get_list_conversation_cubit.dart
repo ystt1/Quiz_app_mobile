@@ -25,8 +25,7 @@ class GetListConversationCubit extends Cubit<GetListConversationState> {
 
         emit(GetListConversationSuccess(conversations: conversation));
         final socket = await _socketService.socket;
-        // socket.emit("joinUserRoom", await GlobalStorage.getUserId());
-
+        socket.emit("joinUserRoom", await GlobalStorage.getUserId());
         socket.on('updateConversationList', (data) {
           final entity = ConversationModel.fromMap(data).toEntity();
           int index = conversation

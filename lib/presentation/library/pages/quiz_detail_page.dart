@@ -18,6 +18,7 @@ import 'package:quiz_app/domain/quiz/usecase/edit_quiz_detail_usecase.dart';
 import 'package:quiz_app/domain/quiz/usecase/remove_question_from_quiz_usecase.dart';
 import 'package:quiz_app/presentation/library/bloc/get_quiz_detail_cubit.dart';
 import 'package:quiz_app/presentation/library/bloc/get_quiz_detail_state.dart';
+import 'package:quiz_app/presentation/library/pages/get_quiz_result_page.dart';
 import 'package:quiz_app/presentation/library/widget/edit_quiz_model.dart';
 
 import '../../../common/bloc/quiz/get_list_quiz_cubit.dart';
@@ -51,7 +52,7 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
         usecase: EditQuizDetailUseCase(),
         params: EditQuizModel(
           id: quiz.id,
-          status: isActive ? "active" : "inactive",
+          status: !isActive ? "active" : "inactive",
         ),
         type: "status");
   }
@@ -140,6 +141,16 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
                             },
                             icon: const Icon(Icons.edit),
                             tooltip: 'Edit Quiz',
+                          ),
+
+
+
+                          IconButton(
+                            onPressed: () {
+                              Navigator.of(context).push(MaterialPageRoute(builder: (_)=>GetQuizResultPage(idQuiz:widget.quiz.id)));
+                            },
+                            icon: const Icon(Icons.history_edu),
+                            tooltip: 'View history',
                           ),
                         ],
                       )
